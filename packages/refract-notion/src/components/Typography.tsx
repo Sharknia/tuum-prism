@@ -1,9 +1,9 @@
 import type {
-    Heading1BlockObjectResponse,
-    Heading2BlockObjectResponse,
-    Heading3BlockObjectResponse,
-    ParagraphBlockObjectResponse,
-    QuoteBlockObjectResponse,
+  Heading1BlockObjectResponse,
+  Heading2BlockObjectResponse,
+  Heading3BlockObjectResponse,
+  ParagraphBlockObjectResponse,
+  QuoteBlockObjectResponse,
 } from '@notionhq/client/build/src/api-endpoints';
 import React from 'react';
 import { mapColorToClass } from '../utils/color-mapper';
@@ -219,9 +219,7 @@ export function Toggle({ block, children }: BlockProps<ToggleBlockObjectResponse
       <summary className="notion-toggle-summary">
         <RichText richText={rich_text} />
       </summary>
-      <div className="notion-toggle-content">
-        {children}
-      </div>
+      {children}
     </details>
   );
 }

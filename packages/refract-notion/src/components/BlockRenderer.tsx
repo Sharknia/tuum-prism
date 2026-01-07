@@ -102,9 +102,11 @@ export function BlockRenderer({ blocks, depth = 0 }: BlockRendererProps) {
 }
 
 function RenderBlock({ block, depth }: { block: NotionBlock; depth: number }) {
-  // Recursively render children
+  // Recursively render children with common indent wrapper
   const childrenContent = block.children && block.children.length > 0 ? (
-    <BlockRenderer blocks={block.children} depth={depth + 1} />
+    <div className="notion-indent">
+      <BlockRenderer blocks={block.children} depth={depth + 1} />
+    </div>
   ) : null;
 
   switch (block.type) {

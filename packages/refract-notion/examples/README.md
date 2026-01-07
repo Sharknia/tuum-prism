@@ -12,6 +12,7 @@
 
 ### 공통
 - `.notion-block` - 모든 블록 공통
+- `.notion-indent` - 하위 블록 들여쓰기 (children wrapper)
 
 ### Typography
 - `.notion-h1`, `.notion-h2`, `.notion-h3` - 헤딩
