@@ -20,9 +20,9 @@
 - [x] Divider - `<hr>` 태그
 
 ### Media & Decoration
-- [ ] Image - 기본 `<img>` + 커스텀 렌더러 주입 지원
-- [ ] Callout - 아이콘 + 배경색 + Children
-- [ ] Bookmark - OpenGraph 메타 정보 처리 (Optional)
+- [x] Image - 기본 `<img>` + 커스텀 렌더러 주입 지원
+- [x] Callout - 아이콘 + 배경색 + Children
+- [x] Bookmark - OpenGraph 메타 정보 처리 (Optional)
 
 ### Advanced Blocks
 - [ ] Code Block - Syntax Highlighting (PrismJS 등 연동)

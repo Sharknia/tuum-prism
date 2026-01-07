@@ -115,9 +115,94 @@ export function NumberedListItem({ block, children }: BlockProps<NumberedListIte
 }
 
 // --- Divider ---
-import { DividerBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+import { BookmarkBlockObjectResponse, CalloutBlockObjectResponse, DividerBlockObjectResponse, ImageBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 
 export function Divider({ block }: { block: DividerBlockObjectResponse }) {
   return <hr className="notion-block notion-divider" />;
 }
 
+// --- Image ---
+export interface ImageProps {
+  src: string;
+  alt: string;
+  caption?: React.ReactNode;
+  className?: string;
+}
+
+// Default Image component (can be overridden via IoC)
+export function DefaultImage({ src, alt, caption, className }: ImageProps) {
+  return (
+    <figure className={`notion-block notion-image ${className ?? ''}`}>
+      <img src={src} alt={alt} loading="lazy" />
+      {caption && <figcaption className="notion-caption">{caption}</figcaption>}
+    </figure>
+  );
+}
+
+export function ImageBlock({ 
+  block, 
+  ImageComponent = DefaultImage 
+}: { 
+  block: ImageBlockObjectResponse; 
+  ImageComponent?: React.ComponentType<ImageProps>;
+}) {
+  const { image } = block;
+  const src = image.type === 'external' ? image.external.url : image.file.url;
+  const caption = image.caption && image.caption.length > 0 
+    ? <RichText richText={image.caption} /> 
+    : undefined;
+
+  return (
+    <ImageComponent 
+      src={src} 
+      alt={caption ? '' : 'Image'} 
+      caption={caption} 
+    />
+  );
+}
+
+// --- Callout ---
+export function Callout({ block, children }: BlockProps<CalloutBlockObjectResponse>) {
+  const { icon, color, rich_text } = block.callout;
+  const colorClass = mapColorToClass(color);
+
+  // Render icon
+  let iconElement: React.ReactNode = null;
+  if (icon) {
+    if (icon.type === 'emoji') {
+      iconElement = <span className="notion-callout-icon">{icon.emoji}</span>;
+    } else if (icon.type === 'external') {
+      iconElement = <img src={icon.external.url} alt="" className="notion-callout-icon notion-callout-icon-image" />;
+    } else if (icon.type === 'file') {
+      iconElement = <img src={icon.file.url} alt="" className="notion-callout-icon notion-callout-icon-image" />;
+    }
+  }
+
+  return (
+    <div className={`notion-block notion-callout ${colorClass}`}>
+      {iconElement}
+      <div className="notion-callout-content">
+        <RichText richText={rich_text} />
+        {children && <div className="notion-indent">{children}</div>}
+      </div>
+    </div>
+  );
+}
+
+// --- Bookmark ---
+export function Bookmark({ block }: { block: BookmarkBlockObjectResponse }) {
+  const { url, caption } = block.bookmark;
+
+  return (
+    <div className="notion-block notion-bookmark">
+      <a href={url} target="_blank" rel="noopener noreferrer" className="notion-bookmark-link">
+        {url}
+      </a>
+      {caption && caption.length > 0 && (
+        <div className="notion-caption">
+          <RichText richText={caption} />
+        </div>
+      )}
+    </div>
+  );
+}

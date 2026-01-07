@@ -63,7 +63,10 @@ Notion의 논리적 종속(Nesting)을 시각화하기 위해 재귀 렌더링 �
 
 1. **이미지 처리**:
    - 기본적으로 표준 `<img>` 태그를 사용합니다.
-   - 사용자가 `next/image`를 원할 경우 `components` prop을 통해 커스텀 렌더러를 주입할 수 있습니다.
+   - 사용자가 `next/image`를 원할 경우 `ImageComponent` prop을 통해 커스텀 렌더러를 주입할 수 있습니다.
+   - 이미지 영구화(Notion URL 만료 대응)는 라이브러리 책임이 아니며, 앱 레벨에서 처리합니다.
 2. **스타일링**:
    - **Headless 기반**: 기본적으로는 스타일이 없는 HTML 구조만 렌더링합니다.
    - **Default Theme**: 사용 편의성을 위해 '기본 테마 CSS'를 별도로 제공하여, import 한 줄로 스타일을 적용할 수 있게 합니다.
+3. **Callout**: 아이콘(Emoji/External/File) + 배경색 + Children 지원.
+4. **Bookmark**: MVP에서는 URL 링크만 표시. OpenGraph 메타데이터는 앱에서 처리.

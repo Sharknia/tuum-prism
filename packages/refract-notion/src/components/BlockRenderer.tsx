@@ -1,10 +1,13 @@
 import type { NotionBlock } from '../types';
 import {
+    Bookmark,
     BulletedListItem,
+    Callout,
     Divider,
     Heading1,
     Heading2,
     Heading3,
+    ImageBlock,
     NumberedListItem,
     Paragraph,
     Quote,
@@ -116,7 +119,13 @@ function RenderBlock({ block, depth }: { block: NotionBlock; depth: number }) {
       return <NumberedListItem block={block}>{childrenContent}</NumberedListItem>;
     case 'divider':
       return <Divider block={block} />;
-    // TODO: support other blocks (image, to_do, toggle, code, etc.)
+    case 'image':
+      return <ImageBlock block={block} />;
+    case 'callout':
+      return <Callout block={block}>{childrenContent}</Callout>;
+    case 'bookmark':
+      return <Bookmark block={block} />;
+    // TODO: support other blocks (to_do, toggle, code, etc.)
     default:
       if (process.env.NODE_ENV === 'development') {
         return <div className="notion-block notion-unsupported">Unsupported block type: {block.type}</div>;

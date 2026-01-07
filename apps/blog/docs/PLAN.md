@@ -106,6 +106,14 @@
 - **문제**: Notion API 이미지 URL은 약 1시간 후 만료
 - **해결**: 외부 스토리지(Vercel Blob 또는 Cloudinary)로 이관 후 영구 URL 사용
 
+| 항목 | 설계 |
+|------|------|
+| 실행 시점 | GitHub Actions Cron (매시간) |
+| 스토리지 | Vercel Blob (추천) 또는 Cloudinary |
+| URL 매핑 | Block ID → 영구 URL (JSON 또는 KV) |
+| 변경 감지 | `last_edited_time` 비교 |
+| Fallback | 영구화 미설정 시 원본 Notion URL 사용 |
+
 #### 자동화
 
 - GitHub Actions 기반 Cron 실행 (`0 * * * *`)
