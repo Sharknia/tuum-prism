@@ -17,7 +17,7 @@
 - [x] Quote
 - [x] Bulleted List Item
 - [x] Numbered List Item
-- [ ] Divider - `<hr>` 태그
+- [x] Divider - `<hr>` 태그
 
 ### Media & Decoration
 - [ ] Image - 기본 `<img>` + 커스텀 렌더러 주입 지원

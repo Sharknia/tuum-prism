@@ -114,3 +114,10 @@ export function NumberedListItem({ block, children }: BlockProps<NumberedListIte
   );
 }
 
+// --- Divider ---
+import { DividerBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+
+export function Divider({ block }: { block: DividerBlockObjectResponse }) {
+  return <hr className="notion-block notion-divider" />;
+}
+

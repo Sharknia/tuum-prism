@@ -45,6 +45,14 @@
   opacity: 0.8;
 }
 
+/* Divider */
+.notion-divider {
+  width: 100%;
+  border: none;
+  border-top: 1px solid rgba(55, 53, 47, 0.16);
+  margin: 1rem 0;
+}
+
 /* Lists */
 .notion-list {
   margin: 0;

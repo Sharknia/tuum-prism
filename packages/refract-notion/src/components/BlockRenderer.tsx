@@ -1,6 +1,7 @@
 import type { NotionBlock } from '../types';
 import {
     BulletedListItem,
+    Divider,
     Heading1,
     Heading2,
     Heading3,
@@ -113,6 +114,8 @@ function RenderBlock({ block, depth }: { block: NotionBlock; depth: number }) {
       return <BulletedListItem block={block}>{childrenContent}</BulletedListItem>;
     case 'numbered_list_item':
       return <NumberedListItem block={block}>{childrenContent}</NumberedListItem>;
+    case 'divider':
+      return <Divider block={block} />;
     // TODO: support other blocks (image, to_do, toggle, code, etc.)
     default:
       if (process.env.NODE_ENV === 'development') {
