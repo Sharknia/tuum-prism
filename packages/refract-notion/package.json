@@ -4,6 +4,10 @@
     "main": "src/index.ts",
     "license": "MIT",
     "private": false,
+    "files": [
+        "src",
+        "dist"
+    ],
     "scripts": {
         "lint": "eslint .",
         "typecheck": "tsc --noEmit",

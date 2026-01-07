@@ -2,8 +2,8 @@ import { NotionPostRepository } from '@/infrastructure/notion/notion.repository'
 import { BlockRenderer } from '@tuum/refract-notion';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-// Import default styles (from workspace source as manual import)
-import '@tuum/refract-notion/src/styles.css';
+// Import local Notion theme (based on examples/demo.css)
+import '@/styles/notion-theme.css';
 
 const postRepository = new NotionPostRepository();
 

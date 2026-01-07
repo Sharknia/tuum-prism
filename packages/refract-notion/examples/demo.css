@@ -114,6 +114,67 @@
   text-decoration: underline;
 }
 
+/* Toggle */
+.notion-toggle {
+  margin: 0.5rem 0;
+}
+
+.notion-toggle-summary {
+  cursor: pointer;
+  padding: 0.5rem;
+  list-style: revert;
+}
+
+.notion-toggle-content {
+  padding-left: 1.5rem;
+}
+
+/* Code Block */
+.notion-code-block {
+  margin: 1rem 0;
+  background: rgba(55, 53, 47, 0.03);
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.notion-code-block pre {
+  margin: 0;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.notion-code-block code {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Table */
+.notion-table-wrapper {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.notion-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.notion-table-row {
+  border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.notion-table-cell {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(55, 53, 47, 0.09);
+  text-align: left;
+}
+
+.notion-table th {
+  background: rgba(55, 53, 47, 0.03);
+  font-weight: 600;
+}
+
 /* Lists */
 .notion-list {
   margin: 0;
