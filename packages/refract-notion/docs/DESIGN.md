@@ -70,3 +70,6 @@ Notion의 논리적 종속(Nesting)을 시각화하기 위해 재귀 렌더링 �
    - **Default Theme**: 사용 편의성을 위해 '기본 테마 CSS'를 별도로 제공하여, import 한 줄로 스타일을 적용할 수 있게 합니다.
 3. **Callout**: 아이콘(Emoji/External/File) + 배경색 + Children 지원.
 4. **Bookmark**: MVP에서는 URL 링크만 표시. OpenGraph 메타데이터는 앱에서 처리.
+5. **Code Block**: Headless 원칙 적용. `<pre><code class="language-{lang}">` 구조만 렌더링. Syntax Highlighting은 사용자가 PrismJS/Shiki 등 선택.
+6. **Toggle**: 네이티브 HTML5 `<details>` / `<summary>` 사용. JavaScript 없이 동작.
+7. **Table**: `has_column_header`, `has_row_header` 플래그에 따라 `<thead>` / `<th>` 자동 적용.

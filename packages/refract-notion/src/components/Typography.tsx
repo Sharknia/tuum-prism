@@ -206,3 +206,104 @@ export function Bookmark({ block }: { block: BookmarkBlockObjectResponse }) {
     </div>
   );
 }
+
+// --- Toggle ---
+import { CodeBlockObjectResponse, TableBlockObjectResponse, TableRowBlockObjectResponse, ToggleBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+
+export function Toggle({ block, children }: BlockProps<ToggleBlockObjectResponse>) {
+  const { rich_text, color } = block.toggle;
+  const colorClass = mapColorToClass(color);
+
+  return (
+    <details className={`notion-block notion-toggle ${colorClass}`}>
+      <summary className="notion-toggle-summary">
+        <RichText richText={rich_text} />
+      </summary>
+      <div className="notion-toggle-content">
+        {children}
+      </div>
+    </details>
+  );
+}
+
+// --- CodeBlock ---
+export interface CodeBlockProps {
+  language: string;
+  code: string;
+  caption?: React.ReactNode;
+  className?: string;
+}
+
+// Default CodeBlock component (Headless - no syntax highlighting)
+export function DefaultCodeBlock({ language, code, caption, className }: CodeBlockProps) {
+  return (
+    <figure className={`notion-block notion-code-block ${className ?? ''}`}>
+      <pre>
+        <code className={`language-${language}`}>{code}</code>
+      </pre>
+      {caption && <figcaption className="notion-caption">{caption}</figcaption>}
+    </figure>
+  );
+}
+
+export function CodeBlock({
+  block,
+  CodeComponent = DefaultCodeBlock,
+}: {
+  block: CodeBlockObjectResponse;
+  CodeComponent?: React.ComponentType<CodeBlockProps>;
+}) {
+  const { language, rich_text, caption } = block.code;
+  const code = rich_text.map((t) => t.plain_text).join('');
+  const captionElement = caption && caption.length > 0 ? <RichText richText={caption} /> : undefined;
+
+  return (
+    <CodeComponent
+      language={language}
+      code={code}
+      caption={captionElement}
+    />
+  );
+}
+
+// --- Table ---
+export function Table({ block, children }: BlockProps<TableBlockObjectResponse>) {
+  const { has_column_header, has_row_header } = block.table;
+
+  return (
+    <div className="notion-block notion-table-wrapper">
+      <table className="notion-table" data-has-column-header={has_column_header} data-has-row-header={has_row_header}>
+        <tbody>
+          {children}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export function TableRow({
+  block,
+  isFirstRow,
+  hasRowHeader,
+}: {
+  block: TableRowBlockObjectResponse;
+  isFirstRow?: boolean;
+  hasRowHeader?: boolean;
+}) {
+  const { cells } = block.table_row;
+
+  return (
+    <tr className="notion-table-row">
+      {cells.map((cell, index) => {
+        const isHeader = (isFirstRow) || (hasRowHeader && index === 0);
+        const Tag = isHeader ? 'th' : 'td';
+        return (
+          <Tag key={index} className="notion-table-cell">
+            <RichText richText={cell} />
+          </Tag>
+        );
+      })}
+    </tr>
+  );
+}
+

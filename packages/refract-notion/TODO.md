@@ -25,9 +25,9 @@
 - [x] Bookmark - OpenGraph 메타 정보 처리 (Optional)
 
 ### Advanced Blocks
-- [ ] Code Block - Syntax Highlighting (PrismJS 등 연동)
-- [ ] Toggle - `<details>` / `<summary>` 활용
-- [ ] Table - Notion API의 Table Row/Cell 처리
+- [x] Code Block - Syntax Highlighting (PrismJS 등 연동)
+- [x] Toggle - `<details>` / `<summary>` 활용
+- [x] Table - Notion API의 Table Row/Cell 처리
 
 ### Rich Text Extensions
 - [ ] Mention - `@User`, `@Date`, `[[Page Link]]` 렌더링

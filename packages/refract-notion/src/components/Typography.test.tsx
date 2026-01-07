@@ -1,24 +1,28 @@
 import type {
     BookmarkBlockObjectResponse,
     CalloutBlockObjectResponse,
+    CodeBlockObjectResponse,
     DividerBlockObjectResponse,
     Heading1BlockObjectResponse,
     Heading2BlockObjectResponse,
     Heading3BlockObjectResponse,
     ParagraphBlockObjectResponse,
     QuoteBlockObjectResponse,
+    ToggleBlockObjectResponse,
 } from '@notionhq/client/build/src/api-endpoints';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import {
     Bookmark,
     Callout,
+    CodeBlock,
     Divider,
     Heading1,
     Heading2,
     Heading3,
     Paragraph,
     Quote,
+    Toggle,
 } from '../components/Typography';
 
 // Helper to create a minimal block with rich_text
@@ -132,11 +136,79 @@ describe('Bookmark', () => {
         url: 'https://example.com',
         caption: [],
       },
-    } as BookmarkBlockObjectResponse;
+    } as unknown as BookmarkBlockObjectResponse;
 
     render(<Bookmark block={block} />);
     const link = screen.getByRole('link');
     expect(link).toHaveAttribute('href', 'https://example.com');
     expect(link).toHaveAttribute('target', '_blank');
+  });
+});
+
+describe('Toggle', () => {
+  it('should render <details> with <summary> structure', () => {
+    const block = {
+      type: 'toggle',
+      toggle: {
+        rich_text: createRichText('Toggle Title'),
+        color: 'default',
+      },
+    } as ToggleBlockObjectResponse;
+
+    const { container } = render(<Toggle block={block} />);
+    const details = container.querySelector('details');
+    expect(details).toHaveClass('notion-toggle');
+    
+    const summary = container.querySelector('summary');
+    expect(summary).toBeInTheDocument();
+    expect(screen.getByText('Toggle Title')).toBeInTheDocument();
+  });
+
+  it('should render children in toggle content', () => {
+    const block = {
+      type: 'toggle',
+      toggle: {
+        rich_text: createRichText('Toggle'),
+        color: 'default',
+      },
+    } as ToggleBlockObjectResponse;
+
+    render(<Toggle block={block}><div data-testid="child">Child Content</div></Toggle>);
+    expect(screen.getByTestId('child')).toBeInTheDocument();
+  });
+});
+
+describe('CodeBlock', () => {
+  it('should render <pre><code> with language class', () => {
+    const block = {
+      type: 'code',
+      code: {
+        rich_text: createRichText('const x = 1;'),
+        language: 'javascript',
+        caption: [],
+      },
+    } as CodeBlockObjectResponse;
+
+    const { container } = render(<CodeBlock block={block} />);
+    const figure = container.querySelector('figure');
+    expect(figure).toHaveClass('notion-code-block');
+    
+    const code = container.querySelector('code');
+    expect(code).toHaveClass('language-javascript');
+    expect(code).toHaveTextContent('const x = 1;');
+  });
+
+  it('should render caption if present', () => {
+    const block = {
+      type: 'code',
+      code: {
+        rich_text: createRichText('code'),
+        language: 'python',
+        caption: createRichText('A code snippet'),
+      },
+    } as CodeBlockObjectResponse;
+
+    render(<CodeBlock block={block} />);
+    expect(screen.getByText('A code snippet')).toBeInTheDocument();
   });
 });

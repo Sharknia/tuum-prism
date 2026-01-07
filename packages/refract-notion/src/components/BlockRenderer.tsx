@@ -1,16 +1,20 @@
 import type { NotionBlock } from '../types';
 import {
-    Bookmark,
-    BulletedListItem,
-    Callout,
-    Divider,
-    Heading1,
-    Heading2,
-    Heading3,
-    ImageBlock,
-    NumberedListItem,
-    Paragraph,
-    Quote,
+  Bookmark,
+  BulletedListItem,
+  Callout,
+  CodeBlock,
+  Divider,
+  Heading1,
+  Heading2,
+  Heading3,
+  ImageBlock,
+  NumberedListItem,
+  Paragraph,
+  Quote,
+  Table,
+  TableRow,
+  Toggle,
 } from './Typography';
 
 export interface BlockRendererProps {
@@ -125,7 +129,25 @@ function RenderBlock({ block, depth }: { block: NotionBlock; depth: number }) {
       return <Callout block={block}>{childrenContent}</Callout>;
     case 'bookmark':
       return <Bookmark block={block} />;
-    // TODO: support other blocks (to_do, toggle, code, etc.)
+    case 'toggle':
+      return <Toggle block={block}>{childrenContent}</Toggle>;
+    case 'code':
+      return <CodeBlock block={block} />;
+    case 'table':
+      // Table children are table_row blocks, render with header info
+      const tableChildren = block.children?.map((row, index) => (
+        <TableRow
+          key={row.id}
+          block={row as Parameters<typeof TableRow>[0]['block']}
+          isFirstRow={index === 0 && block.table?.has_column_header}
+          hasRowHeader={block.table?.has_row_header}
+        />
+      ));
+      return <Table block={block}>{tableChildren}</Table>;
+    case 'table_row':
+      // table_row is handled by parent table block
+      return null;
+    // TODO: support other blocks (to_do, etc.)
     default:
       if (process.env.NODE_ENV === 'development') {
         return <div className="notion-block notion-unsupported">Unsupported block type: {block.type}</div>;
