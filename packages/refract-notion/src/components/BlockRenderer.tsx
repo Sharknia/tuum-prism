@@ -14,6 +14,7 @@ import {
   Quote,
   Table,
   TableRow,
+  ToDo,
   Toggle,
 } from './Typography';
 
@@ -147,7 +148,9 @@ function RenderBlock({ block, depth }: { block: NotionBlock; depth: number }) {
     case 'table_row':
       // table_row is handled by parent table block
       return null;
-    // TODO: support other blocks (to_do, etc.)
+    case 'to_do':
+      return <ToDo block={block}>{childrenContent}</ToDo>;
+    // Future: support other blocks
     default:
       if (process.env.NODE_ENV === 'development') {
         return <div className="notion-block notion-unsupported">Unsupported block type: {block.type}</div>;

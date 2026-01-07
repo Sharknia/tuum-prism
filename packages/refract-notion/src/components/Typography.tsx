@@ -307,3 +307,27 @@ export function TableRow({
   );
 }
 
+// --- ToDo ---
+import { ToDoBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+
+export function ToDo({ block, children }: BlockProps<ToDoBlockObjectResponse>) {
+  const { rich_text, checked, color } = block.to_do;
+  const colorClass = mapColorToClass(color);
+
+  return (
+    <div className={`notion-block notion-to-do ${colorClass} ${checked ? 'notion-to-do-checked' : ''}`}>
+      <label className="notion-to-do-label">
+        <input
+          type="checkbox"
+          checked={checked}
+          disabled
+          className="notion-to-do-checkbox"
+        />
+        <span className="notion-to-do-text">
+          <RichText richText={rich_text} />
+        </span>
+      </label>
+      {children}
+    </div>
+  );
+}

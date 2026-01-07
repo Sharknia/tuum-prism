@@ -112,6 +112,18 @@ function CustomImage({ src, alt, caption }: ImageProps) {
 // 사용 시 (BlockRenderer에서 커스텀 컴포넌트 지원 예정)
 ```
 
+### 리스트 depth별 스타일링
+
+라이브러리는 중첩된 리스트를 시맨틱 HTML로 렌더링합니다.  
+depth별 스타일(1→a→i)은 CSS로 직접 적용하세요.
+
+```css
+/* 예: Ordered List depth 순환 */
+.notion-ol { list-style-type: decimal; }
+.notion-ol .notion-ol { list-style-type: lower-alpha; }
+.notion-ol .notion-ol .notion-ol { list-style-type: lower-roman; }
+```
+
 ## 라이선스
 
 MIT

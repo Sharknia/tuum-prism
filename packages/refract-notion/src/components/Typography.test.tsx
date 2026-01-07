@@ -8,7 +8,8 @@ import type {
     Heading3BlockObjectResponse,
     ParagraphBlockObjectResponse,
     QuoteBlockObjectResponse,
-    ToggleBlockObjectResponse,
+    ToDoBlockObjectResponse,
+    ToggleBlockObjectResponse
 } from '@notionhq/client/build/src/api-endpoints';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
@@ -22,7 +23,8 @@ import {
     Heading3,
     Paragraph,
     Quote,
-    Toggle,
+    ToDo,
+    Toggle
 } from '../components/Typography';
 
 // Helper to create a minimal block with rich_text
@@ -210,5 +212,44 @@ describe('CodeBlock', () => {
 
     render(<CodeBlock block={block} />);
     expect(screen.getByText('A code snippet')).toBeInTheDocument();
+  });
+});
+
+describe('ToDo', () => {
+  it('should render checkbox with notion-to-do class', () => {
+    const block = {
+      type: 'to_do',
+      to_do: {
+        rich_text: createRichText('Task item'),
+        checked: false,
+        color: 'default',
+      },
+    } as ToDoBlockObjectResponse;
+
+    const { container } = render(<ToDo block={block} />);
+    const todoDiv = container.querySelector('.notion-to-do');
+    expect(todoDiv).toBeInTheDocument();
+    
+    const checkbox = container.querySelector('input[type="checkbox"]');
+    expect(checkbox).toBeInTheDocument();
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('should apply checked class when checked is true', () => {
+    const block = {
+      type: 'to_do',
+      to_do: {
+        rich_text: createRichText('Completed task'),
+        checked: true,
+        color: 'default',
+      },
+    } as ToDoBlockObjectResponse;
+
+    const { container } = render(<ToDo block={block} />);
+    const todoDiv = container.querySelector('.notion-to-do');
+    expect(todoDiv).toHaveClass('notion-to-do-checked');
+    
+    const checkbox = container.querySelector('input[type="checkbox"]');
+    expect(checkbox).toBeChecked();
   });
 });

@@ -175,6 +175,32 @@
   font-weight: 600;
 }
 
+/* To-Do */
+.notion-to-do {
+  display: flex;
+  flex-direction: column;
+  margin: 0.25rem 0;
+}
+
+.notion-to-do-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  cursor: default;
+}
+
+.notion-to-do-checkbox {
+  margin-top: 0.25rem;
+  width: 1rem;
+  height: 1rem;
+  accent-color: #2383e2;
+}
+
+.notion-to-do-checked .notion-to-do-text {
+  text-decoration: line-through;
+  color: rgba(55, 53, 47, 0.5);
+}
+
 /* Lists */
 .notion-list {
   margin: 0;
@@ -233,7 +259,6 @@
 .notion-bg-orange { background: #faebdd; }
 .notion-bg-yellow { background: #fbf3db; }
 .notion-bg-green { background: #ddedea; }
-.notion-bg-blue { background: #ddjqf3; } /* Correction needed? Notion blue bg is likely #ddedea ish? No: #ddeecb is green. Blue is #e6f3f7 approx. Let's use generic */
 .notion-bg-blue { background: #e6f3f7; }
 .notion-bg-purple { background: #f6f3f9; }
 .notion-bg-pink { background: #fbf2f5; }
