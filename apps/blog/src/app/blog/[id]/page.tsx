@@ -1,6 +1,9 @@
 import { NotionPostRepository } from '@/infrastructure/notion/notion.repository';
+import { BlockRenderer } from '@tuum/refract-notion';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+// Import default styles (from workspace source as manual import)
+import '@tuum/refract-notion/src/styles.css';
 
 const postRepository = new NotionPostRepository();
 
@@ -30,10 +33,10 @@ export default async function BlogPostPage({ params }: PageProps) {
       </Link>
       <article className="prose prose-lg max-w-none">
         <h1 className="text-2xl font-bold mb-4">Block Data Preview</h1>
-        <pre className="bg-gray-100 p-4 rounded-lg overflow-auto max-h-[800px] text-xs">
-          {JSON.stringify(blocks, null, 2)}
-        </pre>
-      </article>
+        <div className="mt-8">
+        <BlockRenderer blocks={blocks} />
+      </div>
+    </article>
     </main>
   );
 }
