@@ -15,17 +15,17 @@
 
 ## Phase 2: Notion 연동
 
-- [ ] Notion API 클라이언트 구현
-- [ ] 특정 태그(`Ready`) 필터링 로직
-- [ ] 페이지 데이터 파싱 및 변환
-- [ ] 배포 완료 시 상태 업데이트 (`Published`) Write-back
-- [ ] 배포 결과(SNS URL 등) Notion 속성에 기록
+- [x] Notion API 클라이언트 구현
+- [x] 특정 태그(`Ready`) 필터링 로직
+- [x] 페이지 데이터 파싱 및 변환
+- [x] 배포 완료 시 상태 업데이트 (`Published`) Write-back
+- [x] 배포 결과(SNS URL 등) Notion 속성에 기록
 
 ---
 
 ## Phase 3: 블로그 렌더링
 
-- [ ] `react-notion-x` 통합
+- [x] `react-notion-x` 통합
 - [ ] 게시글 목록 페이지
 - [ ] 게시글 상세 페이지
 - [ ] ISR (Incremental Static Regeneration) 적용
