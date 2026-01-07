@@ -1,42 +1,73 @@
+import { PostHeader, TableOfContents } from '@/components/post';
 import { NotionPostRepository } from '@/infrastructure/notion/notion.repository';
-import { BlockRenderer } from '@tuum/refract-notion';
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
-// Import local Notion theme (based on examples/demo.css)
+import {
+  extractTableOfContents,
+  formatReadingTime,
+  hasMeaningfulToc,
+} from '@/lib';
 import '@/styles/notion-theme.css';
+import { BlockRenderer } from '@tuum/refract-notion';
+import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 
 const postRepository = new NotionPostRepository();
 
-// 페이지 파라미터 타입 정의 (Next.js 15+에서 Promise로 변경됨을 고려)
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export const revalidate = 60; // 1분 캐시
+export const revalidate = 3600; // 상세 페이지는 1시간 캐시 (본문 자주 안 바뀜)
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { id } = await params;
 
-  const blocks = await postRepository.getPostContent(id);
+  // 포스트 데이터와 블록 병렬 조회
+  const [post, blocks] = await Promise.all([
+    postRepository.findById(id),
+    postRepository.getPostContent(id),
+  ]);
 
-  if (!blocks || blocks.length === 0) {
+  if (!post || !blocks || blocks.length === 0) {
     notFound();
   }
 
+  // 읽기 시간 계산
+  const readingTime = formatReadingTime(blocks);
+
+  // 목차 추출
+  const tocItems = extractTableOfContents(blocks);
+  const showToc = hasMeaningfulToc(blocks);
+
   return (
-    <main className="container mx-auto px-4 py-12 max-w-4xl">
-      <Link
-        href="/"
-        className="inline-flex items-center text-gray-500 hover:text-black mb-8 text-sm transition-colors"
-      >
-        ← Back to List
-      </Link>
-      <article className="prose prose-lg max-w-none">
-        <h1 className="text-2xl font-bold mb-4">Block Data Preview</h1>
-        <div className="mt-8">
-        <BlockRenderer blocks={blocks} />
+    <div className="container-blog py-8">
+      <div className="flex gap-8 items-start">
+        {/* 메인 콘텐츠 */}
+        <article className="flex-1 min-w-0">
+          {/* 포스트 헤더 */}
+          <PostHeader post={post} readingTime={readingTime} />
+
+          {/* 모바일 목차 */}
+          {showToc && (
+            <Suspense fallback={null}>
+              <div className="lg:hidden">
+                <TableOfContents items={tocItems} />
+              </div>
+            </Suspense>
+          )}
+
+          {/* 본문 */}
+          <div className="prose prose-lg max-w-none dark:prose-invert">
+            <BlockRenderer blocks={blocks} />
+          </div>
+        </article>
+
+        {/* 데스크탑 목차 사이드바 */}
+        {showToc && (
+          <Suspense fallback={null}>
+            <TableOfContents items={tocItems} />
+          </Suspense>
+        )}
       </div>
-    </article>
-    </main>
+    </div>
   );
 }

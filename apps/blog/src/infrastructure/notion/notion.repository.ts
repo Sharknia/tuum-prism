@@ -2,10 +2,7 @@ import type { PostRepository } from '@/application/post';
 import type { Post, PostStatus } from '@/domain/post';
 import { isFullPage } from '@notionhq/client';
 import { getBlocks, type NotionBlock } from '@tuum/refract-notion';
-import {
-    getNotionClient,
-    getNotionDatabaseId,
-} from './notion.client';
+import { getNotionClient, getNotionDatabaseId } from './notion.client';
 import { formatLogTimestamp, mapNotionPageToPost } from './notion.mapper';
 
 /**
@@ -79,6 +76,20 @@ export class NotionPostRepository implements PostRepository {
     // Config Injection: Repository가 Client를 주입
     const blocks = await getBlocks(this.notion, id);
     return blocks;
+  }
+
+  /**
+   * 단일 포스트 조회 (ID로)
+   */
+  async findById(id: string): Promise<Post | null> {
+    try {
+      const page = await this.notion.pages.retrieve({ page_id: id });
+      if (!isFullPage(page)) return null;
+      return mapNotionPageToPost(page);
+    } catch (error) {
+      console.error('Failed to find post by id:', error);
+      return null;
+    }
   }
 
   /**
