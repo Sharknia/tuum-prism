@@ -1,44 +1,19 @@
 {
-  "name": "tuum-prism",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev --port 36001",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit",
-    "check": "pnpm lint && pnpm typecheck && pnpm format:check",
-    "test": "vitest",
-    "test:coverage": "vitest --coverage"
-  },
-  "dependencies": {
-    "@notionhq/client": "^5.6.0",
-    "clsx": "^2.1.1",
-    "next": "16.1.1",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "tailwind-merge": "^3.4.0",
-    "zod": "^3"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@testing-library/jest-dom": "^6",
-    "@testing-library/react": "^16",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@vitejs/plugin-react": "^4",
-    "@vitest/coverage-v8": "^3",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.1",
-    "jsdom": "^26",
-    "prettier": "^3",
-    "tailwindcss": "^4",
-    "typescript": "^5",
-    "vitest": "^3"
-  }
+    "name": "tuum-prism-monorepo",
+    "private": true,
+    "scripts": {
+        "build": "turbo run build",
+        "dev": "turbo run dev",
+        "lint": "turbo run lint",
+        "test": "turbo run test",
+        "format": "prettier --write \"**/*.{ts,tsx,md,json,yml}\""
+    },
+    "devDependencies": {
+        "turbo": "^2.3.0",
+        "prettier": "^3.4.2"
+    },
+    "packageManager": "pnpm@9.15.0",
+    "engines": {
+        "node": ">=20.0.0"
+    }
 }
