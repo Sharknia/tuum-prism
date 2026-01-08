@@ -52,7 +52,7 @@ export default async function Home({ searchParams }: HomeProps) {
   if (q) activeFilters.push(`"${q}"`);
 
   return (
-    <div className="container-blog py-8">
+    <div className="container-blog py-12">
       {/* 페이지 헤더 */}
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight">

@@ -14,10 +14,11 @@ export function Header({ series = [] }: HeaderProps) {
         {/* Logo / Home */}
         <Link
           href="/"
-          className="flex items-center gap-2 font-bold text-lg hover:text-(--accent) transition-colors"
+          className="flex items-center gap-2 font-bold text-lg transition-colors"
         >
-          <span className="text-xl">◈</span>
-          <span>Tuum Prism</span>
+          <span className="font-[family-name:var(--font-source-code-pro)] text-foreground text-xl">
+            Tuum Prism
+          </span>
         </Link>
 
         {/* Right side controls */}
