@@ -9,7 +9,7 @@ export function PostCard({ post }: PostCardProps) {
   return (
     <Link
       href={`/blog/${post.id}`}
-      className="block group p-6 rounded-xl border border-(--border) hover:border-(--accent) hover:shadow-md transition-all bg-(--surface)"
+      className="block group p-6 rounded-xl border border-(--border) hover:border-(--accent) hover:shadow-md transition-all bg-white dark:bg-(--surface) shadow-sm"
     >
       <article className="flex flex-col gap-2">
         {/* 시리즈 표시 */}
@@ -20,7 +20,7 @@ export function PostCard({ post }: PostCardProps) {
         )}
 
         {/* 제목 */}
-        <h3 className="text-xl font-bold group-hover:text-(--accent) transition-colors line-clamp-2">
+        <h3 className="text-xl font-bold transition-colors line-clamp-2">
           {post.title}
         </h3>
 
@@ -50,7 +50,7 @@ export function PostCard({ post }: PostCardProps) {
               {post.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="px-2 py-0.5 rounded-md bg-(--background) text-xs font-medium"
+                  className="px-2.5 py-1 rounded-md bg-(--surface) dark:bg-(--background) border border-(--border) text-xs font-medium"
                 >
                   #{tag}
                 </span>

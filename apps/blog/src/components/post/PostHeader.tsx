@@ -72,7 +72,7 @@ export function PostHeader({ post, readingTime }: PostHeaderProps) {
             <Link
               key={tag}
               href={`/?tag=${encodeURIComponent(tag)}`}
-              className="px-3 py-1 rounded-md bg-(--surface) text-sm hover:bg-(--accent) hover:text-white transition-colors"
+              className="px-3 py-1 rounded-md bg-(--surface) border border-(--border) text-sm hover:bg-(--accent) hover:text-white transition-colors"
             >
               #{tag}
             </Link>
