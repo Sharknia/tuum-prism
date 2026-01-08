@@ -2,6 +2,19 @@
 .notion-block {
   margin: 4px 0;
   line-height: 1.5;
+  color: var(--foreground, #171717); /* Safari fallback */
+}
+
+/* Safari/WebKit prose override - ensure Notion content inherits proper colors */
+.prose .notion-block,
+.prose-lg .notion-block {
+  color: inherit;
+}
+
+/* Explicitly set prose colors for light mode */
+.prose {
+  --tw-prose-body: var(--foreground, #171717);
+  --tw-prose-headings: var(--foreground, #171717);
 }
 
 .notion-indent {
@@ -306,20 +319,49 @@
   background: transparent;
 }
 
-/* Dark Mode Overrides (Optional - simplistic approach) */
-@media (prefers-color-scheme: dark) {
-  .notion-color-default {
-    color: rgba(255, 255, 255, 0.9);
-  }
-  .notion-color-gray {
-    color: #979a9b;
-  }
-  /* Add more dark mode mappings if needed */
+/* Callout Text Color Enforcement */
+.notion-callout {
+  color: var(--foreground);
+}
 
-  .notion-bg-gray {
-    background: #454b4e;
-  }
-  /* ... */
+/* Dark Mode Overrides */
+[data-theme='dark'] .notion-color-default {
+  color: rgba(255, 255, 255, 0.9);
+}
+[data-theme='dark'] .notion-color-gray {
+  color: #979a9b;
+}
+
+/* Dark Mode Backgrounds - Using rgba for better blending and readability */
+[data-theme='dark'] .notion-bg-gray {
+  background: rgba(255, 255, 255, 0.1);
+}
+[data-theme='dark'] .notion-bg-brown {
+  background: rgba(147, 114, 100, 0.2);
+}
+[data-theme='dark'] .notion-bg-orange {
+  background: rgba(217, 115, 13, 0.2);
+}
+[data-theme='dark'] .notion-bg-yellow {
+  background: rgba(223, 171, 1, 0.2);
+}
+[data-theme='dark'] .notion-bg-green {
+  background: rgba(15, 123, 108, 0.2);
+}
+[data-theme='dark'] .notion-bg-blue {
+  background: rgba(11, 110, 153, 0.2);
+}
+[data-theme='dark'] .notion-bg-purple {
+  background: rgba(105, 64, 165, 0.2);
+}
+[data-theme='dark'] .notion-bg-pink {
+  background: rgba(173, 26, 114, 0.2);
+}
+[data-theme='dark'] .notion-bg-red {
+  background: rgba(224, 62, 62, 0.2);
+}
+[data-theme='dark'] .notion-bg-default {
+  background: transparent;
 }
 
 /* Column List */
@@ -333,4 +375,39 @@
 .notion-column {
   min-width: 0; /* prevent overflow */
   /* width or flex-grow is handled by inline styles from Typography.tsx */
+}
+
+/* Mermaid Diagrams */
+.notion-mermaid {
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.notion-mermaid .mermaid-container {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.notion-mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.notion-mermaid-error {
+  padding: 1rem;
+  background: rgba(255, 0, 0, 0.1);
+  border-radius: 4px;
+  color: #e03e3e;
+}
+
+.notion-mermaid-error pre {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.mermaid-loading {
+  padding: 2rem;
+  text-align: center;
+  color: rgba(55, 53, 47, 0.5);
 }

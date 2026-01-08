@@ -1,9 +1,11 @@
 import type { NotionBlock } from '../types';
+import { RichText } from './RichText';
 import {
     Bookmark,
     BulletedListItem,
     Callout,
     CodeBlock,
+    type CodeBlockProps,
     Column,
     ColumnList,
     Divider,
@@ -11,6 +13,7 @@ import {
     Heading2,
     Heading3,
     ImageBlock,
+    type ImageProps,
     NumberedListItem,
     Paragraph,
     Quote,
@@ -20,9 +23,20 @@ import {
     Toggle
 } from './Typography';
 
+/**
+ * Custom components that can be injected into BlockRenderer.
+ * This allows apps to provide their own implementations (e.g., Mermaid-aware code blocks).
+ */
+export interface BlockRendererComponents {
+  CodeBlock?: React.ComponentType<CodeBlockProps>;
+  ImageBlock?: React.ComponentType<ImageProps>;
+}
+
 export interface BlockRendererProps {
   blocks: NotionBlock[];
   depth?: number;
+  /** Custom component overrides */
+  components?: BlockRendererComponents;
 }
 
 // Internal type for grouped list
@@ -72,7 +86,7 @@ function groupLists(blocks: NotionBlock[]): RenderableBlock[] {
   return result;
 }
 
-export function BlockRenderer({ blocks, depth = 0 }: BlockRendererProps) {
+export function BlockRenderer({ blocks, depth = 0, components }: BlockRendererProps) {
   if (!blocks || blocks.length === 0) {
     return null;
   }
@@ -90,24 +104,24 @@ export function BlockRenderer({ blocks, depth = 0 }: BlockRendererProps) {
           return (
             <Tag key={`list-group-${index}`} className={listClassName}>
               {block.items.map((item) => (
-                <RenderBlock key={item.id} block={item as NotionBlock} depth={depth} />
+                <RenderBlock key={item.id} block={item as NotionBlock} depth={depth} components={components} />
               ))}
             </Tag>
           );
         }
 
         // Handle Standard Block
-        return <RenderBlock key={(block as NotionBlock).id} block={block as NotionBlock} depth={depth} />;
+        return <RenderBlock key={(block as NotionBlock).id} block={block as NotionBlock} depth={depth} components={components} />;
       })}
     </>
   );
 }
 
-function RenderBlock({ block, depth }: { block: NotionBlock; depth: number }) {
+function RenderBlock({ block, depth, components }: { block: NotionBlock; depth: number; components?: BlockRendererComponents }) {
   // Recursively render children with common indent wrapper
   const childrenContent = block.children && block.children.length > 0 ? (
     <div className="notion-indent">
-      <BlockRenderer blocks={block.children} depth={depth + 1} />
+      <BlockRenderer blocks={block.children} depth={depth + 1} components={components} />
     </div>
   ) : null;
 
@@ -136,8 +150,17 @@ function RenderBlock({ block, depth }: { block: NotionBlock; depth: number }) {
       return <Bookmark block={block} />;
     case 'toggle':
       return <Toggle block={block}>{childrenContent}</Toggle>;
-    case 'code':
+    case 'code': {
+      // Use custom CodeBlock from props if provided, otherwise use default
+      const CustomCodeBlock = components?.CodeBlock;
+      if (CustomCodeBlock) {
+        const { language, rich_text, caption } = (block as any).code;
+        const code = rich_text.map((t: any) => t.plain_text).join('');
+        const captionElement = caption && caption.length > 0 ? <RichText richText={caption} /> : undefined;
+        return <CustomCodeBlock language={language} code={code} caption={captionElement} />;
+      }
       return <CodeBlock block={block} />;
+    }
     case 'table':
       // Table children are table_row blocks, render with header info
       const tableChildren = block.children?.map((row, index) => (
@@ -157,13 +180,13 @@ function RenderBlock({ block, depth }: { block: NotionBlock; depth: number }) {
     case 'column_list':
       return (
         <ColumnList block={block}>
-          <BlockRenderer blocks={block.children ?? []} depth={depth} />
+          <BlockRenderer blocks={block.children ?? []} depth={depth} components={components} />
         </ColumnList>
       );
     case 'column':
       return (
         <Column block={block}>
-          <BlockRenderer blocks={block.children ?? []} depth={depth} />
+          <BlockRenderer blocks={block.children ?? []} depth={depth} components={components} />
         </Column>
       );
     // Future: support other blocks

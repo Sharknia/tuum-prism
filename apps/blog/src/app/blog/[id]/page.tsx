@@ -1,3 +1,4 @@
+import { NotionRenderer } from '@/components/notion/NotionRenderer';
 import { PostHeader, TableOfContents } from '@/components/post';
 import { ErrorCode } from '@/domain/errors';
 import { NotionPostRepository } from '@/infrastructure/notion/notion.repository';
@@ -7,7 +8,6 @@ import {
     hasMeaningfulToc,
 } from '@/lib';
 import '@/styles/notion-theme.css';
-import { BlockRenderer } from '@tuum/refract-notion';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
@@ -69,7 +69,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
           {/* 본문 */}
           <div className="prose prose-lg max-w-none dark:prose-invert">
-            <BlockRenderer blocks={blocks} />
+            <NotionRenderer blocks={blocks} />
           </div>
         </article>
 
