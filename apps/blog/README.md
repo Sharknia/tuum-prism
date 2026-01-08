@@ -23,10 +23,11 @@
 
 ## 문서
 
-| 문서                     | 설명                 |
-| ------------------------ | -------------------- |
-| [기획서](./docs/PLAN.md) | 프로젝트 상세 기획안 |
-| [TODO](./TODO.md)        | MVP 구현 체크리스트  |
+| 문서                                 | 설명                            |
+| ------------------------------------ | ------------------------------- |
+| [기획서](./docs/PLAN.md)             | 프로젝트 상세 기획안            |
+| [아키텍처](./docs/ARCHITECTURE.md)   | 디렉토리 구조 및 설계 문서      |
+| [TODO](./TODO.md)                    | MVP 구현 체크리스트             |
 
 ## 기술 스택
 
@@ -37,6 +38,48 @@
 | Styling         | Tailwind CSS v4         |
 | Package Manager | pnpm                    |
 | Deployment      | Vercel                  |
+
+## 아키텍처 개요
+
+```
+src/
+├── app/                # Next.js Pages (RSC)
+├── application/        # 유스케이스, Port 인터페이스
+├── domain/             # 엔티티, 비즈니스 로직
+├── infrastructure/     # 외부 시스템 연동 (Notion)
+├── components/         # React 컴포넌트
+└── lib/                # 유틸리티 함수
+```
+
+자세한 내용은 [아키텍처 문서](./docs/ARCHITECTURE.md)를 참조하세요.
+
+## 에러 핸들링
+
+Result 패턴을 사용하여 404와 500 에러를 명확히 구분합니다:
+
+```typescript
+const result = await postRepository.findById(id);
+
+if (!result.success) {
+  if (result.error.code === ErrorCode.NOT_FOUND) {
+    notFound(); // 404 페이지
+  }
+  throw result.error; // 500 에러 페이지
+}
+```
+
+## 성능 최적화
+
+- **메타데이터 캐싱**: 태그/시리즈 데이터 5분 캐시 (`unstable_cache`)
+- **서버 사이드 필터링**: Notion API 레벨에서 필터링
+- **ISR**: 1분/1시간 단위 증분 정적 재생성
+
+## 접근성
+
+- **키보드 네비게이션**: Tab, Arrow, Home/End, ESC 지원
+- **ARIA 속성**: `aria-current`, `aria-expanded`, `aria-controls`
+- **Focus 스타일**: `focus-visible:ring-2` 적용
+- **목표**: Lighthouse 접근성 95+
 
 ## 빠른 시작
 

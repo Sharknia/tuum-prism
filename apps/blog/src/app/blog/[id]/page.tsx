@@ -1,9 +1,10 @@
 import { PostHeader, TableOfContents } from '@/components/post';
+import { ErrorCode } from '@/domain/errors';
 import { NotionPostRepository } from '@/infrastructure/notion/notion.repository';
 import {
-  extractTableOfContents,
-  formatReadingTime,
-  hasMeaningfulToc,
+    extractTableOfContents,
+    formatReadingTime,
+    hasMeaningfulToc,
 } from '@/lib';
 import '@/styles/notion-theme.css';
 import { BlockRenderer } from '@tuum/refract-notion';
@@ -21,13 +22,24 @@ export const revalidate = 3600; // 상세 페이지는 1시간 캐시 (본문 �
 export default async function BlogPostPage({ params }: PageProps) {
   const { id } = await params;
 
-  // 포스트 데이터와 블록 병렬 조회
-  const [post, blocks] = await Promise.all([
-    postRepository.findById(id),
-    postRepository.getPostContent(id),
-  ]);
+  // 먼저 포스트 존재 여부 확인 (Result 패턴)
+  const postResult = await postRepository.findById(id);
 
-  if (!post || !blocks || blocks.length === 0) {
+  // 포스트가 없으면 404
+  if (!postResult.success) {
+    if (postResult.error.code === ErrorCode.NOT_FOUND) {
+      notFound();
+    }
+    // 서버 에러: error.tsx에서 처리
+    throw postResult.error;
+  }
+
+  const post = postResult.data;
+
+  // 포스트가 유효한 경우에만 블록 조회
+  const blocks = await postRepository.getPostContent(id);
+
+  if (!blocks || blocks.length === 0) {
     notFound();
   }
 

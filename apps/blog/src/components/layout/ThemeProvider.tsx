@@ -1,11 +1,11 @@
 'use client';
 
 import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
+    createContext,
+    useContext,
+    useEffect,
+    useState,
+    type ReactNode,
 } from 'react';
 
 type Theme = 'light' | 'dark' | 'system';
@@ -100,7 +100,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       value={{ theme, resolvedTheme, setTheme, toggleTheme }}
     >
       {/* SSR 시 플래시 방지를 위해 마운트 전까지 숨김 처리 */}
-      <div style={{ visibility: mounted ? 'visible' : 'hidden' }}>
+      {/* flex flex-col min-h-screen으로 footer 하단 고정 */}
+      <div
+        className="flex flex-col min-h-screen"
+        style={{ visibility: mounted ? 'visible' : 'hidden' }}
+      >
         {children}
       </div>
     </ThemeContext.Provider>

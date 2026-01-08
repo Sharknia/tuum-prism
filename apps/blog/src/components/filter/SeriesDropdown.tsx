@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 interface SeriesDropdownProps {
   series: { name: string; count: number }[];
@@ -13,6 +13,9 @@ export function SeriesDropdown({ series }: SeriesDropdownProps) {
   const selectedSeries = searchParams.get('series');
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // 고유 ID 생성 (ARIA 연결용)
+  const dropdownId = useId();
 
   // 외부 클릭 시 드롭다운 닫기
   useEffect(() => {
@@ -28,6 +31,18 @@ export function SeriesDropdown({ series }: SeriesDropdownProps) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // ESC 키로 드롭다운 닫기
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen]);
 
   const handleSeriesClick = (seriesName: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -53,9 +68,15 @@ export function SeriesDropdown({ series }: SeriesDropdownProps) {
     <div ref={dropdownRef} className="relative hidden sm:block">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-(--surface) transition-colors text-sm"
+        className="flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-(--surface) transition-colors text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent)"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
+        aria-controls={dropdownId}
+        aria-label={
+          currentSeriesName
+            ? `시리즈: ${currentSeriesName}`
+            : '시리즈 선택'
+        }
       >
         <span>{currentSeriesName || '시리즈'}</span>
         <svg
@@ -65,6 +86,7 @@ export function SeriesDropdown({ series }: SeriesDropdownProps) {
           strokeWidth={1.5}
           stroke="currentColor"
           className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"
@@ -75,8 +97,11 @@ export function SeriesDropdown({ series }: SeriesDropdownProps) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 rounded-lg bg-(--surface) border border-(--border) shadow-lg z-50">
-          <ul className="py-1" role="listbox">
+        <div
+          id={dropdownId}
+          className="absolute right-0 mt-2 w-56 rounded-lg bg-(--surface) border border-(--border) shadow-lg z-50"
+        >
+          <ul className="py-1" role="listbox" aria-label="시리즈 목록">
             {/* 전체 보기 옵션 */}
             <li>
               <button

@@ -1,7 +1,9 @@
 import { TagSidebar } from '@/components/filter';
 import { PostList } from '@/components/post';
+import type { Post } from '@/domain/post';
 import { PostStatus } from '@/domain/post';
 import { NotionPostRepository } from '@/infrastructure/notion/notion.repository';
+import { getCachedMetadata } from '@/lib';
 import { Suspense } from 'react';
 
 const postRepository = new NotionPostRepository();
@@ -12,64 +14,31 @@ interface HomeProps {
   searchParams: Promise<{ tag?: string; series?: string; q?: string }>;
 }
 
-// 태그 집계 함수
-function aggregateTags(
-  posts: { tags: string[] }[]
-): { name: string; count: number }[] {
-  const tagCount = new Map<string, number>();
-
-  for (const post of posts) {
-    for (const tag of post.tags) {
-      tagCount.set(tag, (tagCount.get(tag) || 0) + 1);
-    }
-  }
-
-  return Array.from(tagCount.entries())
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
-}
-
-// 시리즈 집계 함수
-function aggregateSeries(
-  posts: { series: string | null }[]
-): { name: string; count: number }[] {
-  const seriesCount = new Map<string, number>();
-
-  for (const post of posts) {
-    if (post.series) {
-      seriesCount.set(post.series, (seriesCount.get(post.series) || 0) + 1);
-    }
-  }
-
-  return Array.from(seriesCount.entries())
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
-}
-
 export default async function Home({ searchParams }: HomeProps) {
   const params = await searchParams;
   const { tag, series, q } = params;
 
-  // 모든 포스트 조회
-  const allPosts = await postRepository.findByStatus(PostStatus.Writing, 100);
+  // 캐시된 메타데이터 조회 (태그/시리즈 집계)
+  const metadata = await getCachedMetadata();
 
-  // 태그 집계
-  const tags = aggregateTags(allPosts);
-
-  // 필터링
-  let filteredPosts = allPosts;
+  // 서버 사이드 필터링: 조건에 따라 다른 쿼리 호출
+  let posts: Post[];
 
   if (tag) {
-    filteredPosts = filteredPosts.filter((post) => post.tags.includes(tag));
+    // 태그 필터링 (Notion API에서 직접 필터)
+    posts = await postRepository.findByTag(PostStatus.Writing, tag);
+  } else if (series) {
+    // 시리즈 필터링 (Notion API에서 직접 필터)
+    posts = await postRepository.findBySeries(PostStatus.Writing, series);
+  } else {
+    // 전체 조회
+    posts = await postRepository.findByStatus(PostStatus.Writing, 100);
   }
 
-  if (series) {
-    filteredPosts = filteredPosts.filter((post) => post.series === series);
-  }
-
+  // 검색어 필터링 (클라이언트 사이드 - 본문 검색은 Notion API 미지원)
   if (q) {
     const query = q.toLowerCase();
-    filteredPosts = filteredPosts.filter(
+    posts = posts.filter(
       (post) =>
         post.title.toLowerCase().includes(query) ||
         post.description.toLowerCase().includes(query)
@@ -113,7 +82,7 @@ export default async function Home({ searchParams }: HomeProps) {
         {/* 포스트 목록 */}
         <div className="flex-1 min-w-0">
           <PostList
-            posts={filteredPosts}
+            posts={posts}
             emptyMessage={
               activeFilters.length > 0
                 ? '해당 조건에 맞는 글이 없습니다.'
@@ -122,14 +91,11 @@ export default async function Home({ searchParams }: HomeProps) {
           />
         </div>
 
-        {/* 태그 사이드바 (Desktop only) */}
+        {/* 태그 사이드바 (Desktop only) - 캐시된 데이터 사용 */}
         <Suspense fallback={null}>
-          <TagSidebar tags={tags} />
+          <TagSidebar tags={metadata.tags} />
         </Suspense>
       </div>
     </div>
   );
 }
-
-// 시리즈 데이터를 layout에 전달하기 위한 export
-export { aggregateSeries };

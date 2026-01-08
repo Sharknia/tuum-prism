@@ -1,7 +1,7 @@
 'use client';
 
 import type { TocItem } from '@/lib/toc-extractor';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
 interface TableOfContentsProps {
   items: TocItem[];
@@ -10,6 +10,9 @@ interface TableOfContentsProps {
 export function TableOfContents({ items }: TableOfContentsProps) {
   const [activeId, setActiveId] = useState<string>('');
   const [isOpen, setIsOpen] = useState(false);
+
+  // 고유 ID 생성 (ARIA 연결용)
+  const mobileNavId = useId();
 
   // Intersection Observer로 활성 섹션 추적
   useEffect(() => {
@@ -41,6 +44,18 @@ export function TableOfContents({ items }: TableOfContentsProps) {
     return () => observer.disconnect();
   }, [items]);
 
+  // ESC 키로 모바일 목차 닫기
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen]);
+
   const handleClick = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
@@ -49,31 +64,67 @@ export function TableOfContents({ items }: TableOfContentsProps) {
     }
   };
 
+  // 방향키 네비게이션
+  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+    let targetIndex: number | null = null;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        targetIndex = Math.min(index + 1, items.length - 1);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        targetIndex = Math.max(index - 1, 0);
+        break;
+      case 'Home':
+        e.preventDefault();
+        targetIndex = 0;
+        break;
+      case 'End':
+        e.preventDefault();
+        targetIndex = items.length - 1;
+        break;
+    }
+
+    if (targetIndex !== null) {
+      document.getElementById(`toc-item-${targetIndex}`)?.focus();
+    }
+  };
+
   if (items.length === 0) {
     return null;
   }
+
+  // 버튼 스타일 함수
+  const getButtonClassName = (isActive: boolean) =>
+    `text-left w-full py-1 rounded transition-colors 
+    focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent) focus-visible:ring-offset-2
+    ${isActive ? 'text-(--accent) font-medium' : 'text-(--muted) hover:text-(--foreground)'}`.trim();
 
   return (
     <>
       {/* Desktop: 고정 사이드바 */}
       <aside className="hidden lg:block w-64 shrink-0">
-        <nav className="sticky top-20">
-          <h3 className="text-sm font-semibold text-(--muted) uppercase tracking-wider mb-4">
+        <nav className="sticky top-20" aria-label="목차">
+          <h3
+            id="toc-heading"
+            className="text-sm font-semibold text-(--muted) uppercase tracking-wider mb-4"
+          >
             목차
           </h3>
-          <ul className="space-y-2 text-sm">
-            {items.map((item) => (
+          <ul className="space-y-2 text-sm" aria-labelledby="toc-heading">
+            {items.map((item, index) => (
               <li
                 key={item.id}
                 style={{ paddingLeft: `${(item.level - 1) * 0.75}rem` }}
               >
                 <button
+                  id={`toc-item-${index}`}
                   onClick={() => handleClick(item.id)}
-                  className={`text-left w-full py-1 transition-colors ${
-                    activeId === item.id
-                      ? 'text-(--accent) font-medium'
-                      : 'text-(--muted) hover:text-(--foreground)'
-                  }`}
+                  onKeyDown={(e) => handleKeyDown(e, index)}
+                  aria-current={activeId === item.id ? 'location' : undefined}
+                  className={getButtonClassName(activeId === item.id)}
                 >
                   {item.text}
                 </button>
@@ -87,8 +138,10 @@ export function TableOfContents({ items }: TableOfContentsProps) {
       <div className="lg:hidden mb-6">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-2 w-full px-4 py-3 rounded-lg bg-(--surface) text-sm font-medium"
+          className="flex items-center gap-2 w-full px-4 py-3 rounded-lg bg-(--surface) text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent)"
           aria-expanded={isOpen}
+          aria-controls={mobileNavId}
+          aria-label={isOpen ? '목차 닫기' : '목차 열기'}
         >
           <span>📑 목차</span>
           <svg
@@ -98,6 +151,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
             strokeWidth={1.5}
             stroke="currentColor"
             className={`w-4 h-4 ml-auto transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"
@@ -108,20 +162,22 @@ export function TableOfContents({ items }: TableOfContentsProps) {
         </button>
 
         {isOpen && (
-          <nav className="mt-2 p-4 rounded-lg bg-(--surface) border border-(--border)">
+          <nav
+            id={mobileNavId}
+            className="mt-2 p-4 rounded-lg bg-(--surface) border border-(--border)"
+            aria-label="목차"
+          >
             <ul className="space-y-2 text-sm">
-              {items.map((item) => (
+              {items.map((item, index) => (
                 <li
                   key={item.id}
                   style={{ paddingLeft: `${(item.level - 1) * 0.75}rem` }}
                 >
                   <button
+                    id={`mobile-toc-item-${index}`}
                     onClick={() => handleClick(item.id)}
-                    className={`text-left w-full py-1 transition-colors ${
-                      activeId === item.id
-                        ? 'text-(--accent) font-medium'
-                        : 'text-(--muted) hover:text-(--foreground)'
-                    }`}
+                    aria-current={activeId === item.id ? 'location' : undefined}
+                    className={getButtonClassName(activeId === item.id)}
                   >
                     {item.text}
                   </button>
