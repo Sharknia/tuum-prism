@@ -1,9 +1,11 @@
 import type {
-    Heading1BlockObjectResponse,
-    Heading2BlockObjectResponse,
-    Heading3BlockObjectResponse,
-    ParagraphBlockObjectResponse,
-    QuoteBlockObjectResponse,
+  ColumnBlockObjectResponse,
+  ColumnListBlockObjectResponse,
+  Heading1BlockObjectResponse,
+  Heading2BlockObjectResponse,
+  Heading3BlockObjectResponse,
+  ParagraphBlockObjectResponse,
+  QuoteBlockObjectResponse
 } from '@notionhq/client/build/src/api-endpoints';
 import React from 'react';
 import { mapColorToClass } from '../utils/color-mapper';
@@ -314,17 +316,54 @@ export function ToDo({ block, children }: BlockProps<ToDoBlockObjectResponse>) {
 
   return (
     <div className={`notion-block notion-to-do ${colorClass} ${checked ? 'notion-to-do-checked' : ''}`}>
-      <label className="notion-to-do-label">
+      <div className="notion-to-do-label">
         <input
           type="checkbox"
           checked={checked}
-          disabled
+          readOnly
           className="notion-to-do-checkbox"
         />
-        <span className="notion-to-do-text">
+        <div className="notion-to-do-text">
           <RichText richText={rich_text} />
-        </span>
-      </label>
+        </div>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// --- Column List & Column ---
+export function ColumnList({ block, children }: BlockProps<ColumnListBlockObjectResponse>) {
+  return (
+    <div className="notion-block notion-column-list">
+      {children}
+    </div>
+  );
+}
+
+export function Column({ block, children }: BlockProps<ColumnBlockObjectResponse>) {
+  // Notion API might provide width_ratio (0-1).
+  // If provided, we use it to calculate width percentage.
+  // If not, we default to generic flex-grow behavior.
+  
+  // Note: API types say width_ratio is in the property `column`? Let's check type definition.
+  // Actually, ColumnBlockObjectResponse has `type: 'column'` and `column: { children: ... }` but specifically
+  // standard Notion API response for column usually doesn't document `width_ratio` in the public TS types widely, 
+  // but let's check if usage works or if we need to cast safely.
+  // Checking official docs again -- width_ratio IS documented but sometimes types lag. 
+  // We'll access it safely.
+  
+  // Actually based on my knowledge of the official client types, it might be there.
+  // Let's assume it is or cast as needed.
+  
+  const widthRatio = (block as any).column?.width_ratio;
+  
+  const style: React.CSSProperties = widthRatio 
+    ? { flex: `${widthRatio} 1 0` }
+    : { flex: 1 };
+
+  return (
+    <div className="notion-block notion-column" style={style}>
       {children}
     </div>
   );

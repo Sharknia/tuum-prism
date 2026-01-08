@@ -1,21 +1,23 @@
 import type { NotionBlock } from '../types';
 import {
-  Bookmark,
-  BulletedListItem,
-  Callout,
-  CodeBlock,
-  Divider,
-  Heading1,
-  Heading2,
-  Heading3,
-  ImageBlock,
-  NumberedListItem,
-  Paragraph,
-  Quote,
-  Table,
-  TableRow,
-  ToDo,
-  Toggle,
+    Bookmark,
+    BulletedListItem,
+    Callout,
+    CodeBlock,
+    Column,
+    ColumnList,
+    Divider,
+    Heading1,
+    Heading2,
+    Heading3,
+    ImageBlock,
+    NumberedListItem,
+    Paragraph,
+    Quote,
+    Table,
+    TableRow,
+    ToDo,
+    Toggle
 } from './Typography';
 
 export interface BlockRendererProps {
@@ -152,6 +154,18 @@ function RenderBlock({ block, depth }: { block: NotionBlock; depth: number }) {
       return null;
     case 'to_do':
       return <ToDo block={block}>{childrenContent}</ToDo>;
+    case 'column_list':
+      return (
+        <ColumnList block={block}>
+          <BlockRenderer blocks={block.children ?? []} depth={depth} />
+        </ColumnList>
+      );
+    case 'column':
+      return (
+        <Column block={block}>
+          <BlockRenderer blocks={block.children ?? []} depth={depth} />
+        </Column>
+      );
     // Future: support other blocks
     default:
       if (process.env.NODE_ENV === 'development') {

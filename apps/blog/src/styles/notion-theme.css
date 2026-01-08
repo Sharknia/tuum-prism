@@ -321,3 +321,16 @@
   }
   /* ... */
 }
+
+/* Column List */
+.notion-column-list {
+  display: flex;
+  width: 100%;
+  gap: 32px;
+  /* preserve side-by-side on mobile as requested */
+}
+
+.notion-column {
+  min-width: 0; /* prevent overflow */
+  /* width or flex-grow is handled by inline styles from Typography.tsx */
+}
