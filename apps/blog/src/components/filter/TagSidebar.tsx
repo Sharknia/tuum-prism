@@ -33,21 +33,21 @@ export function TagSidebar({ tags }: TagSidebarProps) {
     <aside className="hidden lg:block w-64 shrink-0">
       <div className="sticky top-20">
         <h3 className="text-sm font-semibold text-(--muted) uppercase tracking-wider mb-4">
-          📌 태그
+          TAGS
         </h3>
-        <ul className="space-y-1">
+        <ul className="flex flex-wrap gap-2">
           {tags.map(({ name, count }) => (
             <li key={name}>
               <button
                 onClick={() => handleTagClick(name)}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                className={`flex items-center px-2.5 py-1 rounded-md text-xs border transition-colors ${
                   selectedTag === name
-                    ? 'bg-(--accent) text-white font-medium'
-                    : 'hover:bg-(--surface) text-(--foreground)'
+                    ? 'bg-(--accent) text-white border-transparent font-medium'
+                    : 'bg-(--surface) border-(--border) text-(--muted) hover:text-(--foreground) hover:border-(--accent)'
                 }`}
               >
                 <span>#{name}</span>
-                <span className="ml-2 text-xs opacity-60">({count})</span>
+                <span className="ml-1.5 opacity-60">({count})</span>
               </button>
             </li>
           ))}
