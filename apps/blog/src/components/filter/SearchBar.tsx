@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function SearchBar() {
   const router = useRouter();
@@ -12,52 +12,40 @@ export function SearchBar() {
   // 버튼 ref (포커스 관리용)
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // URL에서 검색어 동기화 (URL 변경 시 상태 업데이트 - 유효한 패턴)
+  // URL에서 검색어 동기화 (URL 변경 시 상태 업데이트)
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setQuery(searchParams.get('q') || '');
   }, [searchParams]);
 
-  // 디바운스된 검색
-  const debouncedSearch = useCallback(
-    (value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
+  // 검색 실행 (URL 변경)
+  const executeSearch = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
 
-      if (value.trim()) {
-        params.set('q', value.trim());
-      } else {
-        params.delete('q');
-      }
+    if (value.trim()) {
+      params.set('q', value.trim());
+    } else {
+      params.delete('q');
+    }
 
-      const queryString = params.toString();
-      router.push(queryString ? `/?${queryString}` : '/');
-    },
-    [router, searchParams]
-  );
-
-  // 디바운스 타이머
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const timer = setTimeout(() => {
-      debouncedSearch(query);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [query, isOpen, debouncedSearch]);
+    const queryString = params.toString();
+    router.push(queryString ? `/?${queryString}` : '/');
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    debouncedSearch(query);
+    executeSearch(query);
   };
 
   // ESC 키로 검색창 닫기
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       setIsOpen(false);
+      // ESC로 닫을 때는 검색어 초기화 및 검색 취소 (선택 사항, 여기서는 검색어만 비움)
       if (query) {
         setQuery('');
-        debouncedSearch('');
+        // NOTE: 닫을 때 검색 결과도 초기화하려면 아래 주석 해제
+        // executeSearch('');
       }
       buttonRef.current?.focus();
     }
@@ -66,9 +54,12 @@ export function SearchBar() {
   // 닫기 핸들러
   const handleClose = () => {
     setIsOpen(false);
+    // 닫을 때 검색어 초기화는 하지 않음 (사용자가 다시 열었을 때 유지)
+    // 혹은 기획에 따라 초기화 가능. 여기서는 유지하는 편이 나을 수 있음.
+    // 하지만 기존 로직이 닫을 때 초기화였으므로 유지.
     if (query) {
       setQuery('');
-      debouncedSearch('');
+      executeSearch('');
     }
     buttonRef.current?.focus();
   };
@@ -110,7 +101,7 @@ export function SearchBar() {
         onKeyDown={handleKeyDown}
         placeholder="검색..."
         autoFocus
-        className="w-32 sm:w-48 px-3 py-1.5 rounded-lg bg-(--surface) border border-(--border) text-sm focus:outline-none focus:ring-2 focus:ring-(--accent) focus:border-transparent"
+        className="w-32 sm:w-48 px-3 py-1.5 rounded-lg bg-(--surface) border border-(--border) text-sm focus:outline-none focus:ring-2 focus:ring-(--accent) focus:border-transparent [&::-webkit-search-cancel-button]:hidden"
         aria-label="검색어 입력"
       />
       <button

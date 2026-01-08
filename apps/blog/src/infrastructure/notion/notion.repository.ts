@@ -161,7 +161,7 @@ export class NotionPostRepository implements PostRepository {
         filter: {
           and: [
             { property: '상태', select: { equals: status } },
-            { property: '태그', multi_select: { contains: tag } },
+            { property: 'tags', multi_select: { contains: tag } },
           ],
         },
         sorts: [
@@ -196,7 +196,7 @@ export class NotionPostRepository implements PostRepository {
         filter: {
           and: [
             { property: '상태', select: { equals: status } },
-            { property: '시리즈', select: { equals: series } },
+            { property: 'series', select: { equals: series } },
           ],
         },
         sorts: [
