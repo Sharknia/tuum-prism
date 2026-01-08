@@ -60,11 +60,11 @@ export default async function BlogPostPage({ params }: PageProps) {
 
           {/* 모바일 목차 */}
           {showToc && (
-            <Suspense fallback={null}>
-              <div className="lg:hidden">
+            <div className="lg:hidden">
+              <Suspense fallback={null}>
                 <TableOfContents items={tocItems} />
-              </div>
-            </Suspense>
+              </Suspense>
+            </div>
           )}
 
           {/* 본문 */}
@@ -75,9 +75,11 @@ export default async function BlogPostPage({ params }: PageProps) {
 
         {/* 데스크탑 목차 사이드바 */}
         {showToc && (
-          <Suspense fallback={null}>
-            <TableOfContents items={tocItems} />
-          </Suspense>
+          <div className="hidden lg:block sticky top-20 self-start">
+            <Suspense fallback={null}>
+              <TableOfContents items={tocItems} />
+            </Suspense>
+          </div>
         )}
       </div>
     </div>

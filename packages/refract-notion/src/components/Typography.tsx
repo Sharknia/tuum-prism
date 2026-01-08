@@ -9,6 +9,7 @@ import type {
 } from '@notionhq/client/build/src/api-endpoints';
 import React from 'react';
 import { mapColorToClass } from '../utils/color-mapper';
+import { getPlainText, slugify } from '../utils/heading-utils';
 import { RichText } from './RichText';
 
 // Common props for blocks that have children (recursive)
@@ -23,7 +24,7 @@ export function Paragraph({ block, children }: BlockProps<ParagraphBlockObjectRe
   const colorClass = mapColorToClass(color);
 
   return (
-    <p className={`notion-block notion-paragraph ${colorClass}`}>
+    <p id={block.id} className={`notion-block notion-paragraph ${colorClass}`}>
       <RichText richText={rich_text} />
       {children}
     </p>
@@ -36,11 +37,12 @@ export function Paragraph({ block, children }: BlockProps<ParagraphBlockObjectRe
 export function Heading1({ block, children }: BlockProps<Heading1BlockObjectResponse>) {
   const { color, rich_text, is_toggleable } = block.heading_1;
   const colorClass = mapColorToClass(color);
-  // Generate ID from text content for anchor links could be added here
-  
+  const plainText = getPlainText(rich_text);
+  const headingId = `${slugify(plainText)}-${block.id}`;
+
   return (
-    <div className={`notion-block notion-h1 ${colorClass}`}>
-      <h1><RichText richText={rich_text} /></h1>
+    <div id={block.id} className={`notion-block notion-h1 ${colorClass}`}>
+      <h1 id={headingId} style={{ scrollMarginTop: '80px' }}><RichText richText={rich_text} /></h1>
       {is_toggleable && children}
     </div>
   );
@@ -49,10 +51,12 @@ export function Heading1({ block, children }: BlockProps<Heading1BlockObjectResp
 export function Heading2({ block, children }: BlockProps<Heading2BlockObjectResponse>) {
   const { color, rich_text, is_toggleable } = block.heading_2;
   const colorClass = mapColorToClass(color);
+  const plainText = getPlainText(rich_text);
+  const headingId = `${slugify(plainText)}-${block.id}`;
 
   return (
-    <div className={`notion-block notion-h2 ${colorClass}`}>
-      <h2><RichText richText={rich_text} /></h2>
+    <div id={block.id} className={`notion-block notion-h2 ${colorClass}`}>
+      <h2 id={headingId} style={{ scrollMarginTop: '80px' }}><RichText richText={rich_text} /></h2>
       {is_toggleable && children}
     </div>
   );
@@ -61,10 +65,12 @@ export function Heading2({ block, children }: BlockProps<Heading2BlockObjectResp
 export function Heading3({ block, children }: BlockProps<Heading3BlockObjectResponse>) {
   const { color, rich_text, is_toggleable } = block.heading_3;
   const colorClass = mapColorToClass(color);
+  const plainText = getPlainText(rich_text);
+  const headingId = `${slugify(plainText)}-${block.id}`;
 
   return (
-    <div className={`notion-block notion-h3 ${colorClass}`}>
-      <h3><RichText richText={rich_text} /></h3>
+    <div id={block.id} className={`notion-block notion-h3 ${colorClass}`}>
+      <h3 id={headingId} style={{ scrollMarginTop: '80px' }}><RichText richText={rich_text} /></h3>
       {is_toggleable && children}
     </div>
   );
@@ -76,7 +82,7 @@ export function Quote({ block, children }: BlockProps<QuoteBlockObjectResponse>)
   const colorClass = mapColorToClass(color);
 
   return (
-    <blockquote className={`notion-block notion-quote ${colorClass}`}>
+    <blockquote id={block.id} className={`notion-block notion-quote ${colorClass}`}>
       <div className="notion-quote-content">
         <RichText richText={rich_text} />
       </div>
@@ -93,7 +99,7 @@ export function BulletedListItem({ block, children }: BlockProps<BulletedListIte
   const colorClass = mapColorToClass(color);
 
   return (
-    <li className={`notion-block notion-list-item notion-bulleted-list-item ${colorClass}`}>
+    <li id={block.id} className={`notion-block notion-list-item notion-bulleted-list-item ${colorClass}`}>
       <div className="notion-list-item-content">
         <RichText richText={rich_text} />
       </div>
@@ -107,7 +113,7 @@ export function NumberedListItem({ block, children }: BlockProps<NumberedListIte
   const colorClass = mapColorToClass(color);
 
   return (
-    <li className={`notion-block notion-list-item notion-numbered-list-item ${colorClass}`}>
+    <li id={block.id} className={`notion-block notion-list-item notion-numbered-list-item ${colorClass}`}>
       <div className="notion-list-item-content">
         <RichText richText={rich_text} />
       </div>
@@ -120,7 +126,7 @@ export function NumberedListItem({ block, children }: BlockProps<NumberedListIte
 import { BookmarkBlockObjectResponse, CalloutBlockObjectResponse, DividerBlockObjectResponse, ImageBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 
 export function Divider({ block }: { block: DividerBlockObjectResponse }) {
-  return <hr className="notion-block notion-divider" />;
+  return <hr id={block.id} className="notion-block notion-divider" />;
 }
 
 // --- Image ---
@@ -181,7 +187,7 @@ export function Callout({ block, children }: BlockProps<CalloutBlockObjectRespon
   }
 
   return (
-    <div className={`notion-block notion-callout ${colorClass}`}>
+    <div id={block.id} className={`notion-block notion-callout ${colorClass}`}>
       {iconElement}
       <div className="notion-callout-content">
         <RichText richText={rich_text} />
@@ -196,7 +202,7 @@ export function Bookmark({ block }: { block: BookmarkBlockObjectResponse }) {
   const { url, caption } = block.bookmark;
 
   return (
-    <div className="notion-block notion-bookmark">
+    <div id={block.id} className="notion-block notion-bookmark">
       <a href={url} target="_blank" rel="noopener noreferrer" className="notion-bookmark-link">
         {url}
       </a>
@@ -217,7 +223,7 @@ export function Toggle({ block, children }: BlockProps<ToggleBlockObjectResponse
   const colorClass = mapColorToClass(color);
 
   return (
-    <details className={`notion-block notion-toggle ${colorClass}`}>
+    <details id={block.id} className={`notion-block notion-toggle ${colorClass}`}>
       <summary className="notion-toggle-summary">
         <RichText richText={rich_text} />
       </summary>
@@ -271,7 +277,7 @@ export function Table({ block, children }: BlockProps<TableBlockObjectResponse>)
   const { has_column_header, has_row_header } = block.table;
 
   return (
-    <div className="notion-block notion-table-wrapper" style={{ overflowX: 'auto', display: 'block' }}>
+    <div id={block.id} className="notion-block notion-table-wrapper" style={{ overflowX: 'auto', display: 'block' }}>
       <table className="notion-table" data-has-column-header={has_column_header} data-has-row-header={has_row_header}>
         <tbody>
           {children}
@@ -315,7 +321,7 @@ export function ToDo({ block, children }: BlockProps<ToDoBlockObjectResponse>) {
   const colorClass = mapColorToClass(color);
 
   return (
-    <div className={`notion-block notion-to-do ${colorClass} ${checked ? 'notion-to-do-checked' : ''}`}>
+    <div id={block.id} className={`notion-block notion-to-do ${colorClass} ${checked ? 'notion-to-do-checked' : ''}`}>
       <div className="notion-to-do-label">
         <input
           type="checkbox"
@@ -335,7 +341,7 @@ export function ToDo({ block, children }: BlockProps<ToDoBlockObjectResponse>) {
 // --- Column List & Column ---
 export function ColumnList({ block, children }: BlockProps<ColumnListBlockObjectResponse>) {
   return (
-    <div className="notion-block notion-column-list">
+    <div id={block.id} className="notion-block notion-column-list">
       {children}
     </div>
   );
@@ -363,7 +369,7 @@ export function Column({ block, children }: BlockProps<ColumnBlockObjectResponse
     : { flex: 1 };
 
   return (
-    <div className="notion-block notion-column" style={style}>
+    <div id={block.id} className="notion-block notion-column" style={style}>
       {children}
     </div>
   );

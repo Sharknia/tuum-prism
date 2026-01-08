@@ -54,6 +54,7 @@ describe('Paragraph', () => {
 describe('Heading1', () => {
   it('should render an <h1> tag with notion-h1 class', () => {
     const block = {
+      id: 'block-uuid-123',
       type: 'heading_1',
       heading_1: { rich_text: createRichText('Title'), color: 'default', is_toggleable: false },
     } as Heading1BlockObjectResponse;
@@ -61,11 +62,27 @@ describe('Heading1', () => {
     render(<Heading1 block={block} />);
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
   });
+
+  it('should have block.id on wrapper and slugified id on h1', () => {
+    const block = {
+      id: 'block-uuid-123',
+      type: 'heading_1',
+      heading_1: { rich_text: createRichText('Hello World'), color: 'default', is_toggleable: false },
+    } as Heading1BlockObjectResponse;
+
+    const { container } = render(<Heading1 block={block} />);
+    const wrapper = container.querySelector('.notion-h1');
+    expect(wrapper).toHaveAttribute('id', 'block-uuid-123');
+
+    const h1 = container.querySelector('h1');
+    expect(h1).toHaveAttribute('id', 'hello-world');
+  });
 });
 
 describe('Heading2', () => {
   it('should render an <h2> tag', () => {
     const block = {
+      id: 'block-uuid-456',
       type: 'heading_2',
       heading_2: { rich_text: createRichText('Subtitle'), color: 'default', is_toggleable: false },
     } as Heading2BlockObjectResponse;
@@ -73,17 +90,45 @@ describe('Heading2', () => {
     render(<Heading2 block={block} />);
     expect(screen.getByRole('heading', { level: 2 })).toBeInTheDocument();
   });
+
+  it('should have block.id on wrapper and slugified id on h2', () => {
+    const block = {
+      id: 'block-uuid-456',
+      type: 'heading_2',
+      heading_2: { rich_text: createRichText('Korean 제목'), color: 'default', is_toggleable: false },
+    } as Heading2BlockObjectResponse;
+
+    const { container } = render(<Heading2 block={block} />);
+    const wrapper = container.querySelector('.notion-h2');
+    expect(wrapper).toHaveAttribute('id', 'block-uuid-456');
+
+    const h2 = container.querySelector('h2');
+    expect(h2).toHaveAttribute('id', 'korean-제목');
+  });
 });
 
 describe('Heading3', () => {
   it('should render an <h3> tag', () => {
     const block = {
+      id: 'block-uuid-789',
       type: 'heading_3',
       heading_3: { rich_text: createRichText('Sub-subtitle'), color: 'default', is_toggleable: false },
     } as Heading3BlockObjectResponse;
 
     render(<Heading3 block={block} />);
     expect(screen.getByRole('heading', { level: 3 })).toBeInTheDocument();
+  });
+
+  it('should fallback to heading-3 when text is empty', () => {
+    const block = {
+      id: 'block-uuid-789',
+      type: 'heading_3',
+      heading_3: { rich_text: createRichText(''), color: 'default', is_toggleable: false },
+    } as Heading3BlockObjectResponse;
+
+    const { container } = render(<Heading3 block={block} />);
+    const h3 = container.querySelector('h3');
+    expect(h3).toHaveAttribute('id', 'heading-3');
   });
 });
 

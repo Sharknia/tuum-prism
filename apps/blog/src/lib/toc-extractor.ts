@@ -39,29 +39,13 @@ function extractHeadingText(block: NotionBlock): string {
   return '';
 }
 
-/**
- * 고유한 ID 생성 (중복 방지)
- */
-function generateUniqueId(text: string, existingIds: Set<string>): string {
-  const baseSlug = slugify(text) || 'heading';
-  let slug = baseSlug;
-  let counter = 1;
 
-  while (existingIds.has(slug)) {
-    slug = `${baseSlug}-${counter}`;
-    counter++;
-  }
-
-  existingIds.add(slug);
-  return slug;
-}
 
 /**
  * Notion 블록 배열에서 목차 추출
  */
 export function extractTableOfContents(blocks: NotionBlock[]): TocItem[] {
   const toc: TocItem[] = [];
-  const existingIds = new Set<string>();
 
   function processBlocks(blockList: NotionBlock[]) {
     for (const block of blockList) {
@@ -77,7 +61,7 @@ export function extractTableOfContents(blocks: NotionBlock[]): TocItem[] {
             | 1
             | 2
             | 3;
-          const id = generateUniqueId(text, existingIds);
+          const id = `${slugify(text)}-${block.id}`;
 
           toc.push({ id, text: text.trim(), level });
         }

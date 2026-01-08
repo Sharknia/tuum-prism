@@ -1,7 +1,7 @@
 'use client';
 
 import type { TocItem } from '@/lib/toc-extractor';
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 interface TableOfContentsProps {
   items: TocItem[];
@@ -14,15 +14,29 @@ export function TableOfContents({ items }: TableOfContentsProps) {
   // 고유 ID 생성 (ARIA 연결용)
   const mobileNavId = useId();
 
+  // 현재 화면에 보이는(교차된) 요소들을 추적하기 위한 Map
+  const intersectingElements = useRef<Map<string, boolean>>(new Map());
+
   // Intersection Observer로 활성 섹션 추적
   useEffect(() => {
     if (items.length === 0) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries) {
+        // 1. 교차 상태 업데이트
+        entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
+            intersectingElements.current.set(entry.target.id, true);
+          } else {
+            intersectingElements.current.delete(entry.target.id);
+          }
+        });
+
+        // 2. 목차 순서(items)대로 확인하여 가장 먼저 보이는 요소를 Active로 설정
+        // 이를 통해 여러 섹션이 동시에 활성화 영역에 있을 때 가장 상단(먼저 나오는) 섹션을 우선시함
+        for (const item of items) {
+          if (intersectingElements.current.has(item.id)) {
+            setActiveId(item.id);
             break;
           }
         }
@@ -60,7 +74,6 @@ export function TableOfContents({ items }: TableOfContentsProps) {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
-      setIsOpen(false);
     }
   };
 
@@ -98,22 +111,31 @@ export function TableOfContents({ items }: TableOfContentsProps) {
 
   // 버튼 스타일 함수
   const getButtonClassName = (isActive: boolean) =>
-    `text-left w-full py-1 rounded transition-colors 
+    `relative text-left w-full py-1 pl-3 rounded-r
+    before:absolute before:left-0 before:top-0 before:h-full before:w-0.5
+    before:rounded-full before:transition-colors
+    transition-colors
     focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent) focus-visible:ring-offset-2
-    ${isActive ? 'text-(--accent) font-medium' : 'text-(--muted) hover:text-(--foreground)'}`.trim();
+    ${isActive
+      ? 'text-(--accent) font-medium before:bg-(--accent) before:w-1'
+      : 'text-(--muted) hover:text-(--foreground) before:bg-transparent hover:before:bg-(--border)'
+    }`.trim();
 
   return (
     <>
       {/* Desktop: 고정 사이드바 */}
       <aside className="hidden lg:block w-64 shrink-0">
-        <nav className="sticky top-20" aria-label="목차">
+        <nav aria-label="목차">
           <h3
             id="toc-heading"
-            className="text-sm font-semibold text-(--muted) uppercase tracking-wider mb-4"
+            className="text-xs font-semibold text-(--muted) uppercase tracking-widest mb-4 pb-2 border-b border-(--border)"
           >
-            목차
+            📑 목차
           </h3>
-          <ul className="space-y-2 text-sm" aria-labelledby="toc-heading">
+          <ul 
+            className="space-y-0.5 text-sm max-h-[calc(100vh-10rem)] overflow-y-auto pr-2" 
+            aria-labelledby="toc-heading"
+          >
             {items.map((item, index) => (
               <li
                 key={item.id}
@@ -167,7 +189,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
             className="mt-2 p-4 rounded-lg bg-(--surface) border border-(--border)"
             aria-label="목차"
           >
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-0.5 text-sm max-h-[50vh] overflow-y-auto">
               {items.map((item, index) => (
                 <li
                   key={item.id}
