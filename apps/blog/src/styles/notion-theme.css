@@ -204,6 +204,10 @@
   padding-left: 24px;
 }
 
+.notion-indent > .notion-list {
+  margin-left: -24px;
+}
+
 .notion-ul {
   list-style-type: disc;
 }

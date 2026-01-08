@@ -1,9 +1,9 @@
 import type {
-  Heading1BlockObjectResponse,
-  Heading2BlockObjectResponse,
-  Heading3BlockObjectResponse,
-  ParagraphBlockObjectResponse,
-  QuoteBlockObjectResponse,
+    Heading1BlockObjectResponse,
+    Heading2BlockObjectResponse,
+    Heading3BlockObjectResponse,
+    ParagraphBlockObjectResponse,
+    QuoteBlockObjectResponse,
 } from '@notionhq/client/build/src/api-endpoints';
 import React from 'react';
 import { mapColorToClass } from '../utils/color-mapper';
@@ -23,7 +23,7 @@ export function Paragraph({ block, children }: BlockProps<ParagraphBlockObjectRe
   return (
     <p className={`notion-block notion-paragraph ${colorClass}`}>
       <RichText richText={rich_text} />
-      {children && <div className="notion-indent">{children}</div>}
+      {children}
     </p>
   );
 }
@@ -39,7 +39,7 @@ export function Heading1({ block, children }: BlockProps<Heading1BlockObjectResp
   return (
     <div className={`notion-block notion-h1 ${colorClass}`}>
       <h1><RichText richText={rich_text} /></h1>
-      {is_toggleable && children && <div className="notion-indent">{children}</div>}
+      {is_toggleable && children}
     </div>
   );
 }
@@ -51,7 +51,7 @@ export function Heading2({ block, children }: BlockProps<Heading2BlockObjectResp
   return (
     <div className={`notion-block notion-h2 ${colorClass}`}>
       <h2><RichText richText={rich_text} /></h2>
-      {is_toggleable && children && <div className="notion-indent">{children}</div>}
+      {is_toggleable && children}
     </div>
   );
 }
@@ -63,7 +63,7 @@ export function Heading3({ block, children }: BlockProps<Heading3BlockObjectResp
   return (
     <div className={`notion-block notion-h3 ${colorClass}`}>
       <h3><RichText richText={rich_text} /></h3>
-      {is_toggleable && children && <div className="notion-indent">{children}</div>}
+      {is_toggleable && children}
     </div>
   );
 }
@@ -78,7 +78,7 @@ export function Quote({ block, children }: BlockProps<QuoteBlockObjectResponse>)
       <div className="notion-quote-content">
         <RichText richText={rich_text} />
       </div>
-      {children && <div className="notion-indent">{children}</div>}
+      {children}
     </blockquote>
   );
 }
@@ -95,7 +95,7 @@ export function BulletedListItem({ block, children }: BlockProps<BulletedListIte
       <div className="notion-list-item-content">
         <RichText richText={rich_text} />
       </div>
-      {children && <div className="notion-indent">{children}</div>}
+      {children}
     </li>
   );
 }
@@ -109,7 +109,7 @@ export function NumberedListItem({ block, children }: BlockProps<NumberedListIte
       <div className="notion-list-item-content">
         <RichText richText={rich_text} />
       </div>
-      {children && <div className="notion-indent">{children}</div>}
+      {children}
     </li>
   );
 }
@@ -183,7 +183,7 @@ export function Callout({ block, children }: BlockProps<CalloutBlockObjectRespon
       {iconElement}
       <div className="notion-callout-content">
         <RichText richText={rich_text} />
-        {children && <div className="notion-indent">{children}</div>}
+        {children}
       </div>
     </div>
   );
