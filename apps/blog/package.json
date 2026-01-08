@@ -18,11 +18,13 @@
   "dependencies": {
     "@notionhq/client": "^5.6.0",
     "@tuum/refract-notion": "workspace:*",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "clsx": "^2.1.1",
     "mermaid": "^11.12.2",
     "next": "16.1.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-syntax-highlighter": "^16.1.0",
     "tailwind-merge": "^3.4.0",
     "zod": "^3"
   },

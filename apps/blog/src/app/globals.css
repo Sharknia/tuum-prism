@@ -17,10 +17,10 @@
 
 /* Dark Mode */
 [data-theme='dark'] {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --surface: #141414;
-  --border: #262626;
+  --background: #121212;
+  --foreground: #e5e5e5;
+  --surface: #1e1e1e;
+  --border: rgba(255, 255, 255, 0.1);
   --muted: #a3a3a3;
   --accent: #3b82f6;
   --accent-hover: #60a5fa;
@@ -29,10 +29,10 @@
 /* System preference fallback (when no data-theme set) */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --surface: #141414;
-    --border: #262626;
+    --background: #121212;
+    --foreground: #e5e5e5;
+    --surface: #1e1e1e;
+    --border: rgba(255, 255, 255, 0.1);
     --muted: #a3a3a3;
     --accent: #3b82f6;
     --accent-hover: #60a5fa;

@@ -1,14 +1,14 @@
 'use client';
 
 import { BlockRenderer, type BlockRendererProps } from '@tuum/refract-notion';
-import { MermaidCodeBlock } from './MermaidCodeBlock';
+import { EnhancedCodeBlock } from './EnhancedCodeBlock';
 
 /**
  * Default component mapping for the Notion renderer.
  * Centralizes component injection to avoid repetition in page components.
  */
 const defaultComponents = {
-  CodeBlock: MermaidCodeBlock,
+  CodeBlock: EnhancedCodeBlock,
   // Add more custom components here as needed (e.g., Image, Link)
 };
 

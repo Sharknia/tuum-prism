@@ -1,11 +1,11 @@
 import type {
-  ColumnBlockObjectResponse,
-  ColumnListBlockObjectResponse,
-  Heading1BlockObjectResponse,
-  Heading2BlockObjectResponse,
-  Heading3BlockObjectResponse,
-  ParagraphBlockObjectResponse,
-  QuoteBlockObjectResponse
+    ColumnBlockObjectResponse,
+    ColumnListBlockObjectResponse,
+    Heading1BlockObjectResponse,
+    Heading2BlockObjectResponse,
+    Heading3BlockObjectResponse,
+    ParagraphBlockObjectResponse,
+    QuoteBlockObjectResponse
 } from '@notionhq/client/build/src/api-endpoints';
 import React from 'react';
 import { mapColorToClass } from '../utils/color-mapper';
@@ -271,7 +271,7 @@ export function Table({ block, children }: BlockProps<TableBlockObjectResponse>)
   const { has_column_header, has_row_header } = block.table;
 
   return (
-    <div className="notion-block notion-table-wrapper">
+    <div className="notion-block notion-table-wrapper" style={{ overflowX: 'auto', display: 'block' }}>
       <table className="notion-table" data-has-column-header={has_column_header} data-has-row-header={has_row_header}>
         <tbody>
           {children}
