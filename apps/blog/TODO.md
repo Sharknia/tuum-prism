@@ -25,7 +25,7 @@
 
 ## Phase 3: 블로그 렌더링
 
-- [x] `react-notion-x` 통합
+- [x] `@tuum/refract-notion` 자체 개발
 - [ ] 게시글 목록 페이지
 - [ ] 게시글 상세 페이지
 - [ ] ISR (Incremental Static Regeneration) 적용

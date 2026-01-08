@@ -84,7 +84,7 @@
 
 #### 블로그 (Next.js)
 
-- `react-notion-x` 등을 활용한 Notion → React 렌더링
+- `@tuum/refract-notion` 자체 라이브러리로 Notion → React 렌더링
 - Vercel 배포 + ISR (Incremental Static Regeneration)
 - 커스텀 도메인 지원
 

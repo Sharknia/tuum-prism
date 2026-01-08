@@ -63,13 +63,8 @@ export default function PostPage({ blocks }) {
 
 ### 참고용 CSS
 
-GitHub 레포지토리의 `examples/demo.css`를 참고하여 스타일을 작성하세요.
-
-```bash
-# 레포지토리에서 참고용 CSS 확인
-git clone https://github.com/your-org/refract-notion
-cat examples/demo.css
-```
+이 라이브러리는 `tuum-prism` 모노레포의 일부입니다.
+참고용 CSS는 [`examples/demo.css`](./examples/demo.css)를 확인하세요.
 
 ## 커스터마이징
 

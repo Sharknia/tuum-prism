@@ -13,9 +13,15 @@
 
 **Write Once, Publish Everywhere.**
 
-## 핵심 기능
+## 핵심 기능 (구현됨)
 
-- Notion 기반 블로그 자동 렌더링 (react-notion-x)
+- Notion 기반 블로그 자동 렌더링 (@tuum/refract-notion)
+- 에러 핸들링 (Result 패턴, 404/500 페이지)
+- 성능 최적화 (캐싱, 서버 사이드 필터링)
+- 키보드 네비게이션 및 접근성
+
+## 예정 기능
+
 - 글 작성 시 GitHub 커밋 자동 생성
 - SNS 동시 배포 (LinkedIn, X, Threads)
 - 이미지 영구화 파이프라인
@@ -36,6 +42,7 @@
 | Framework       | Next.js 16 (App Router) |
 | Language        | TypeScript (strict)     |
 | Styling         | Tailwind CSS v4         |
+| Notion Renderer | @tuum/refract-notion    |
 | Package Manager | pnpm                    |
 | Deployment      | Vercel                  |
 
