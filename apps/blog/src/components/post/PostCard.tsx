@@ -31,10 +31,9 @@ export function PostCard({ post }: PostCardProps) {
           </p>
         )}
 
-        {/* 메타 정보 */}
-        <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-(--muted)">
-          {/* 날짜 */}
-          {post.date && (
+        {/* 메타 정보: 날짜 */}
+        {post.date && (
+          <div className="mt-2 text-sm text-(--muted)">
             <time dateTime={post.date.toISOString()}>
               {post.date.toLocaleDateString('ko-KR', {
                 year: 'numeric',
@@ -42,25 +41,22 @@ export function PostCard({ post }: PostCardProps) {
                 day: 'numeric',
               })}
             </time>
-          )}
+          </div>
+        )}
 
-          {/* 태그 */}
-          {post.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {post.tags.slice(0, 3).map((tag) => (
-                <span
-                  key={tag}
-                  className="px-2.5 py-1 rounded-md bg-(--surface) dark:bg-(--background) border border-(--border) text-xs font-medium"
-                >
-                  #{tag}
-                </span>
-              ))}
-              {post.tags.length > 3 && (
-                <span className="text-xs">+{post.tags.length - 3}</span>
-              )}
-            </div>
-          )}
-        </div>
+        {/* 메타 정보: 태그 (전체 노출) */}
+        {post.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-1">
+            {post.tags.map((tag) => (
+              <span
+                key={tag}
+                className="px-2.5 py-1 rounded-md bg-(--surface) dark:bg-(--background) border border-(--border) text-xs font-medium"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
       </article>
     </Link>
   );
