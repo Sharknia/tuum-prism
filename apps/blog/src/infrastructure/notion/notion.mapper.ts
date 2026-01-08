@@ -7,7 +7,11 @@ type PropertyValue = PageObjectResponse['properties'][string];
 /**
  * Notion 속성값에서 텍스트 추출
  */
-function extractText(prop: PropertyValue): string {
+/**
+ * Notion 속성값에서 텍스트 추출
+ */
+function extractText(prop: PropertyValue | undefined): string {
+  if (!prop) return '';
   if (prop.type === 'title' && prop.title.length > 0) {
     return prop.title.map((t) => t.plain_text).join('');
   }
@@ -20,7 +24,8 @@ function extractText(prop: PropertyValue): string {
 /**
  * Notion 속성값에서 select 값 추출
  */
-function extractSelect(prop: PropertyValue): string | null {
+function extractSelect(prop: PropertyValue | undefined): string | null {
+  if (!prop) return null;
   if (prop.type === 'select' && prop.select) {
     return prop.select.name;
   }
@@ -30,7 +35,8 @@ function extractSelect(prop: PropertyValue): string | null {
 /**
  * Notion 속성값에서 multi_select 값 추출
  */
-function extractMultiSelect(prop: PropertyValue): string[] {
+function extractMultiSelect(prop: PropertyValue | undefined): string[] {
+  if (!prop) return [];
   if (prop.type === 'multi_select') {
     return prop.multi_select.map((s) => s.name);
   }
@@ -40,7 +46,8 @@ function extractMultiSelect(prop: PropertyValue): string[] {
 /**
  * Notion 속성값에서 unique_id 추출
  */
-function extractUniqueId(prop: PropertyValue): number {
+function extractUniqueId(prop: PropertyValue | undefined): number {
+  if (!prop) return 0;
   if (prop.type === 'unique_id' && prop.unique_id.number !== null) {
     return prop.unique_id.number;
   }
@@ -50,7 +57,8 @@ function extractUniqueId(prop: PropertyValue): number {
 /**
  * Notion 속성값에서 date 추출
  */
-function extractDate(prop: PropertyValue): Date | null {
+function extractDate(prop: PropertyValue | undefined): Date | null {
+  if (!prop) return null;
   if (prop.type === 'date' && prop.date?.start) {
     return new Date(prop.date.start);
   }

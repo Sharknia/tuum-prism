@@ -41,15 +41,20 @@ export class NotionPostRepository implements PostRepository {
   }
 
   /**
-   * 특정 상태의 포스트 목록 조회
+   * 특정 상태의 포스트 목록 조회 (페이지네이션 지원)
    */
-  async findByStatus(status: PostStatus, limit: number = 100): Promise<Post[]> {
+  async findByStatus(
+    status: PostStatus,
+    limit: number = 20,
+    cursor?: string
+  ): Promise<{ results: Post[]; nextCursor: string | null }> {
     try {
       const dataSourceId = await this.getDataSourceId();
 
       const response = await this.notion.dataSources.query({
         data_source_id: dataSourceId,
         page_size: limit,
+        start_cursor: cursor,
         filter: {
           property: '상태',
           select: {
@@ -58,16 +63,19 @@ export class NotionPostRepository implements PostRepository {
         },
         sorts: [
           {
-            timestamp: 'last_edited_time',
+            property: 'date',
             direction: 'descending',
           },
         ],
       });
 
-      return response.results.filter(isFullPage).map(mapNotionPageToPost);
+      return {
+        results: response.results.filter(isFullPage).map(mapNotionPageToPost),
+        nextCursor: response.has_more ? (response.next_cursor ?? null) : null,
+      };
     } catch (error) {
       console.error('Failed to find posts by status:', error);
-      return [];
+      return { results: [], nextCursor: null };
     }
   }
 
@@ -166,7 +174,7 @@ export class NotionPostRepository implements PostRepository {
         },
         sorts: [
           {
-            timestamp: 'last_edited_time',
+            property: 'date',
             direction: 'descending',
           },
         ],
@@ -201,7 +209,7 @@ export class NotionPostRepository implements PostRepository {
         },
         sorts: [
           {
-            timestamp: 'last_edited_time',
+            property: 'date',
             direction: 'descending',
           },
         ],

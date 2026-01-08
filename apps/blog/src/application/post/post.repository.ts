@@ -8,11 +8,17 @@ import type { NotionBlock } from '@tuum/refract-notion';
  */
 export interface PostRepository {
   /**
+  /**
    * 특정 상태의 포스트 목록 조회
    * @param status 포스트 상태
    * @param limit 조회할 최대 개수 (기본값: 100)
+   * @param cursor 페이지네이션 커서
    */
-  findByStatus(status: PostStatus, limit?: number): Promise<Post[]>;
+  findByStatus(
+    status: PostStatus,
+    limit?: number,
+    cursor?: string
+  ): Promise<{ results: Post[]; nextCursor: string | null }>;
 
   /**
    * 단일 포스트 조회 (ID로)

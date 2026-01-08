@@ -1,5 +1,5 @@
 import { TagSidebar } from '@/components/filter';
-import { PostList } from '@/components/post';
+import { InfinitePostList } from '@/components/post/InfinitePostList';
 import type { Post } from '@/domain/post';
 import { PostStatus } from '@/domain/post';
 import { NotionPostRepository } from '@/infrastructure/notion/notion.repository';
@@ -22,17 +22,28 @@ export default async function Home({ searchParams }: HomeProps) {
   const metadata = await getCachedMetadata();
 
   // 서버 사이드 필터링: 조건에 따라 다른 쿼리 호출
-  let posts: Post[];
+  let posts: Post[] = [];
+  let nextCursor: string | null = null;
 
   if (tag) {
     // 태그 필터링 (Notion API에서 직접 필터)
-    posts = await postRepository.findByTag(PostStatus.Writing, tag);
+    posts = await postRepository.findByTag(PostStatus.Updated, tag);
   } else if (series) {
     // 시리즈 필터링 (Notion API에서 직접 필터)
-    posts = await postRepository.findBySeries(PostStatus.Writing, series);
+    posts = await postRepository.findBySeries(PostStatus.Updated, series);
   } else {
-    // 전체 조회
-    posts = await postRepository.findByStatus(PostStatus.Writing, 100);
+    // 전체 조회 (검색 시 100개, 일반 시 20개 + 무한스크롤)
+    if (q) {
+        // 검색어 필터링을 위해 더 많이 조회 (기존 로직 유지)
+        const result = await postRepository.findByStatus(PostStatus.Updated, 100);
+        posts = result.results;
+        // 검색 시 무한 스크롤 비활성화 (client filtering 때문에)
+        nextCursor = null; 
+    } else {
+        const result = await postRepository.findByStatus(PostStatus.Updated, 20);
+        posts = result.results;
+        nextCursor = result.nextCursor;
+    }
   }
 
   // 검색어 필터링 (클라이언트 사이드 - 본문 검색은 Notion API 미지원)
@@ -81,8 +92,9 @@ export default async function Home({ searchParams }: HomeProps) {
       <div className="flex gap-8">
         {/* 포스트 목록 */}
         <div className="flex-1 min-w-0">
-          <PostList
-            posts={posts}
+          <InfinitePostList
+            initialPosts={posts}
+            initialCursor={nextCursor}
             emptyMessage={
               activeFilters.length > 0
                 ? '해당 조건에 맞는 글이 없습니다.'
