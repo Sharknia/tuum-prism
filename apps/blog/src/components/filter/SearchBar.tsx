@@ -69,17 +69,18 @@ export function SearchBar() {
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(true)}
-        className="p-2 rounded-lg hover:bg-(--surface) transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent)"
+        className="p-2 md:px-3 md:py-1.5 rounded-lg hover:bg-(--surface) transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent)"
         aria-label="검색"
         title="검색"
       >
+        {/* Mobile: Icon */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth={1.5}
           stroke="currentColor"
-          className="w-5 h-5"
+          className="w-5 h-5 md:hidden"
           aria-hidden="true"
         >
           <path
@@ -88,6 +89,10 @@ export function SearchBar() {
             d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
           />
         </svg>
+        {/* Desktop: Text */}
+        <span className="hidden md:inline font-[family-name:var(--font-source-code-pro)] text-sm font-medium">
+          Search
+        </span>
       </button>
     );
   }

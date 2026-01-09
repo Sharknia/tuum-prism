@@ -8,7 +8,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-lg hover:bg-(--surface) transition-colors"
+      className="p-2 md:px-3 md:py-1.5 rounded-lg hover:bg-(--surface) transition-colors"
       aria-label={
         resolvedTheme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'
       }
@@ -16,6 +16,7 @@ export function ThemeToggle() {
         resolvedTheme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'
       }
     >
+      {/* Mobile: Icons */}
       {resolvedTheme === 'dark' ? (
         // Sun icon for dark mode (click to switch to light)
         <svg
@@ -24,7 +25,8 @@ export function ThemeToggle() {
           viewBox="0 0 24 24"
           strokeWidth={1.5}
           stroke="currentColor"
-          className="w-5 h-5"
+          className="w-5 h-5 md:hidden"
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"
@@ -40,7 +42,8 @@ export function ThemeToggle() {
           viewBox="0 0 24 24"
           strokeWidth={1.5}
           stroke="currentColor"
-          className="w-5 h-5"
+          className="w-5 h-5 md:hidden"
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"
@@ -49,6 +52,10 @@ export function ThemeToggle() {
           />
         </svg>
       )}
+      {/* Desktop: Text */}
+      <span className="hidden md:inline font-[family-name:var(--font-source-code-pro)] text-sm font-medium">
+        {resolvedTheme === 'dark' ? 'Light' : 'Dark'}
+      </span>
     </button>
   );
 }
