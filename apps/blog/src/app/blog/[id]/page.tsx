@@ -1,17 +1,19 @@
 import { NotionRenderer } from '@/components/notion/NotionRenderer';
 import { PostHeader, TableOfContents } from '@/components/post';
 import { ErrorCode } from '@/domain/errors';
+import { createImageService } from '@/infrastructure/image';
 import { NotionPostRepository } from '@/infrastructure/notion/notion.repository';
 import {
-  extractTableOfContents,
-  formatReadingTime,
-  hasMeaningfulToc,
+    extractTableOfContents,
+    formatReadingTime,
+    hasMeaningfulToc,
 } from '@/lib';
 import '@/styles/notion-theme.css';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
 const postRepository = new NotionPostRepository();
+const imageService = createImageService();
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -37,11 +39,14 @@ export default async function BlogPostPage({ params }: PageProps) {
   const post = postResult.data;
 
   // 포스트가 유효한 경우에만 블록 조회
-  const blocks = await postRepository.getPostContent(id);
+  const rawBlocks = await postRepository.getPostContent(id);
 
-  if (!blocks || blocks.length === 0) {
+  if (!rawBlocks || rawBlocks.length === 0) {
     notFound();
   }
+
+  // 이미지 영구화 처리 (Blob 미설정 시 graceful fallback)
+  const blocks = await imageService.processImages(rawBlocks, id);
 
   // 읽기 시간 계산
   const readingTime = formatReadingTime(blocks);

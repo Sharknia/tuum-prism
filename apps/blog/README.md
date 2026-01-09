@@ -16,6 +16,7 @@
 ## 핵심 기능 (구현됨)
 
 - Notion 기반 블로그 자동 렌더링 (@tuum/refract-notion)
+- 이미지 영구화 (Vercel Blob) - Notion 이미지 만료 문제 해결
 - 에러 핸들링 (Result 패턴, 404/500 페이지)
 - 성능 최적화 (캐싱, 서버 사이드 필터링)
 - 키보드 네비게이션 및 접근성
@@ -24,7 +25,6 @@
 
 - 글 작성 시 GitHub 커밋 자동 생성
 - SNS 동시 배포 (LinkedIn, X, Threads)
-- 이미지 영구화 파이프라인
 - Giscus/Utterances 댓글 시스템
 
 ## 문서
@@ -43,6 +43,7 @@
 | Language        | TypeScript (strict)     |
 | Styling         | Tailwind CSS v4         |
 | Notion Renderer | @tuum/refract-notion    |
+| Image Storage   | Vercel Blob (선택)      |
 | Package Manager | pnpm                    |
 | Deployment      | Vercel                  |
 
@@ -115,6 +116,16 @@ if (!result.success) {
    pnpm dev
    ```
    http://localhost:36001
+
+### 이미지 영구화 설정 (선택, Vercel 배포 후)
+
+Notion 이미지 만료 문제를 해결하려면 Vercel Blob을 설정하세요:
+
+1. Vercel에 프로젝트 배포
+2. Vercel Dashboard → Storage → **Blob** Store 생성
+3. `BLOB_READ_WRITE_TOKEN`이 자동 주입됩니다
+
+> 미설정 시 Notion URL을 그대로 사용합니다 (개발 환경에서는 문제없음).
 
 ## 사용 가능한 스크립트
 

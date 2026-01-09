@@ -35,9 +35,9 @@
 
 ## Phase 4: 이미지 영구화 파이프라인
 
-- [ ] Notion 이미지 URL 만료 문제 해결
-- [ ] 외부 스토리지 연동 (Vercel Blob 또는 Cloudinary)
-- [ ] 이미지 마이그레이션 스크립트
+- [x] Notion 이미지 URL 만료 문제 해결
+- [x] Vercel Blob 연동 (ImageService, BlobStorageAdapter)
+- [ ] 기존 이미지 마이그레이션 스크립트 (선택)
 
 ---
 
