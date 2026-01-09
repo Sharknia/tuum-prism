@@ -93,7 +93,11 @@ export function SearchBar() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2" role="search">
+    <form
+      onSubmit={handleSubmit}
+      className="flex items-center gap-2"
+      role="search"
+    >
       <input
         type="search"
         value={query}

@@ -73,9 +73,7 @@ export function SeriesDropdown({ series }: SeriesDropdownProps) {
         aria-expanded={isOpen}
         aria-controls={dropdownId}
         aria-label={
-          currentSeriesName
-            ? `시리즈: ${currentSeriesName}`
-            : '시리즈 선택'
+          currentSeriesName ? `시리즈: ${currentSeriesName}` : '시리즈 선택'
         }
       >
         <span>{currentSeriesName || '시리즈'}</span>

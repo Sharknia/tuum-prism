@@ -85,7 +85,9 @@ describe('Result', () => {
     });
 
     it('fail 결과에서 error 접근 가능', () => {
-      const result: Result<string, AppError> = fail(AppError.notFound('리소스'));
+      const result: Result<string, AppError> = fail(
+        AppError.notFound('리소스')
+      );
 
       if (!result.success) {
         // TypeScript가 result.error의 타입을 AppError로 추론

@@ -39,8 +39,6 @@ function extractHeadingText(block: NotionBlock): string {
   return '';
 }
 
-
-
 /**
  * Notion 블록 배열에서 목차 추출
  */

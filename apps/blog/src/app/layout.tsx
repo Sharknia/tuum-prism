@@ -1,8 +1,8 @@
 import {
-    Footer,
-    Header,
-    HeaderWrapper,
-    ThemeProvider,
+  Footer,
+  Header,
+  HeaderWrapper,
+  ThemeProvider,
 } from '@/components/layout';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono, Source_Code_Pro } from 'next/font/google';

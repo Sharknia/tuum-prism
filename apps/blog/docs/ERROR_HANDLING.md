@@ -14,7 +14,7 @@
 
 ```typescript
 // src/domain/result.ts
-export type Result<T, E = AppError> = 
+export type Result<T, E = AppError> =
   | { success: true; data: T }
   | { success: false; error: E };
 ```
@@ -37,11 +37,11 @@ export class AppError extends Error {
 
 ## 에러 코드
 
-| 코드 | HTTP 상태 | 설명 | 사용 예 |
-|------|-----------|------|---------|
-| `NOT_FOUND` | 404 | 리소스 없음 | 존재하지 않는 포스트 ID |
-| `UNAUTHORIZED` | 401 | 인증 오류 | Notion API 키 오류 |
-| `INTERNAL_ERROR` | 500 | 서버 오류 | 네트워크 오류, 예상치 못한 예외 |
+| 코드             | HTTP 상태 | 설명        | 사용 예                         |
+| ---------------- | --------- | ----------- | ------------------------------- |
+| `NOT_FOUND`      | 404       | 리소스 없음 | 존재하지 않는 포스트 ID         |
+| `UNAUTHORIZED`   | 401       | 인증 오류   | Notion API 키 오류              |
+| `INTERNAL_ERROR` | 500       | 서버 오류   | 네트워크 오류, 예상치 못한 예외 |
 
 ---
 
@@ -145,10 +145,10 @@ export default function Error({ error, reset }: ErrorProps) {
 
 ```typescript
 // 리소스 없음
-AppError.notFound('포스트')
+AppError.notFound('포스트');
 // → { code: NOT_FOUND, statusCode: 404, message: '포스트을(를) 찾을 수 없습니다' }
 
 // 서버 오류
-AppError.internal('데이터베이스 연결 실패', originalError)
+AppError.internal('데이터베이스 연결 실패', originalError);
 // → { code: INTERNAL_ERROR, statusCode: 500, message: '데이터베이스 연결 실패', originalError }
 ```

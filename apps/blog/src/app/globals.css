@@ -102,12 +102,12 @@ a:hover {
 
 /* 버튼 스타일 링크는 color 상속 */
 a.btn,
-a[class*="bg-"] {
+a[class*='bg-'] {
   color: inherit;
 }
 
 a.btn:hover,
-a[class*="bg-"]:hover {
+a[class*='bg-']:hover {
   color: inherit;
 }
 

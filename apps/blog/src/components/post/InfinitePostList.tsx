@@ -69,7 +69,11 @@ export function InfinitePostList({
         <PostCard key={post.id} post={post} />
       ))}
       <div ref={observerTarget} className="h-4 w-full flex justify-center p-4">
-        {isLoading && <span className="loading loading-spinner loading-sm text-(--muted)">Loading...</span>}
+        {isLoading && (
+          <span className="loading loading-spinner loading-sm text-(--muted)">
+            Loading...
+          </span>
+        )}
       </div>
     </div>
   );

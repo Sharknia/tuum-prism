@@ -3,9 +3,9 @@ import { PostHeader, TableOfContents } from '@/components/post';
 import { ErrorCode } from '@/domain/errors';
 import { NotionPostRepository } from '@/infrastructure/notion/notion.repository';
 import {
-    extractTableOfContents,
-    formatReadingTime,
-    hasMeaningfulToc,
+  extractTableOfContents,
+  formatReadingTime,
+  hasMeaningfulToc,
 } from '@/lib';
 import '@/styles/notion-theme.css';
 import { notFound } from 'next/navigation';
@@ -22,10 +22,10 @@ export const revalidate = 3600; // 상세 페이지는 1시간 캐시 (본문 �
 export default async function BlogPostPage({ params }: PageProps) {
   const { id } = await params;
 
-  // 먼저 포스트 존재 여부 확인 (Result 패턴)
-  const postResult = await postRepository.findById(id);
+  // getPost는 내부적으로 Published(Updated) 상태 체크
+  const postResult = await postRepository.getPost(id);
 
-  // 포스트가 없으면 404
+  // 포스트가 없거나 Published 상태가 아니면 404
   if (!postResult.success) {
     if (postResult.error.code === ErrorCode.NOT_FOUND) {
       notFound();

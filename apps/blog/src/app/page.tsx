@@ -1,7 +1,6 @@
 import { TagSidebar } from '@/components/filter';
 import { InfinitePostList } from '@/components/post/InfinitePostList';
 import type { Post } from '@/domain/post';
-import { PostStatus } from '@/domain/post';
 import { NotionPostRepository } from '@/infrastructure/notion/notion.repository';
 import { getCachedMetadata } from '@/lib';
 import { Suspense } from 'react';
@@ -21,29 +20,28 @@ export default async function Home({ searchParams }: HomeProps) {
   // 캐시된 메타데이터 조회 (태그/시리즈 집계)
   const metadata = await getCachedMetadata();
 
-  // 서버 사이드 필터링: 조건에 따라 다른 쿼리 호출
+  // 서버 사이드 필터링: 통합된 findPosts 사용
   let posts: Post[] = [];
   let nextCursor: string | null = null;
 
   if (tag) {
-    // 태그 필터링 (Notion API에서 직접 필터)
-    posts = await postRepository.findByTag(PostStatus.Updated, tag);
+    // 태그 필터링
+    const result = await postRepository.findPosts({ tag });
+    posts = result.results;
   } else if (series) {
-    // 시리즈 필터링 (Notion API에서 직접 필터)
-    posts = await postRepository.findBySeries(PostStatus.Updated, series);
+    // 시리즈 필터링
+    const result = await postRepository.findPosts({ series });
+    posts = result.results;
+  } else if (q) {
+    // 검색어 필터링을 위해 더 많이 조회
+    const result = await postRepository.findPosts({ limit: 100 });
+    posts = result.results;
+    nextCursor = null; // 검색 시 무한 스크롤 비활성화
   } else {
-    // 전체 조회 (검색 시 100개, 일반 시 20개 + 무한스크롤)
-    if (q) {
-        // 검색어 필터링을 위해 더 많이 조회 (기존 로직 유지)
-        const result = await postRepository.findByStatus(PostStatus.Updated, 100);
-        posts = result.results;
-        // 검색 시 무한 스크롤 비활성화 (client filtering 때문에)
-        nextCursor = null; 
-    } else {
-        const result = await postRepository.findByStatus(PostStatus.Updated, 20);
-        posts = result.results;
-        nextCursor = result.nextCursor;
-    }
+    // 전체 조회 (20개 + 무한스크롤)
+    const result = await postRepository.findPosts({ limit: 20 });
+    posts = result.results;
+    nextCursor = result.nextCursor;
   }
 
   // 검색어 필터링 (클라이언트 사이드 - 본문 검색은 Notion API 미지원)

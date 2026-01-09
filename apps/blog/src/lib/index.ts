@@ -1,12 +1,11 @@
 export { getCachedMetadata, getCachedSeries } from './cache';
 export {
-    calculateReadingTime,
-    countCharacters,
-    formatReadingTime
+  calculateReadingTime,
+  countCharacters,
+  formatReadingTime,
 } from './reading-time';
 export {
-    extractTableOfContents,
-    hasMeaningfulToc,
-    type TocItem
+  extractTableOfContents,
+  hasMeaningfulToc,
+  type TocItem,
 } from './toc-extractor';
-

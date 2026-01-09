@@ -1,1 +1,6 @@
-export type { PostRepository } from './post.repository';
+export type {
+  FindPostsOptions,
+  PaginatedResult,
+  PostPath,
+  PostRepository,
+} from './post.repository';

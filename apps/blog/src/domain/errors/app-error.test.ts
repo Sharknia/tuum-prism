@@ -4,11 +4,7 @@ import { AppError, ErrorCode } from './app-error';
 describe('AppError', () => {
   describe('constructor', () => {
     it('메시지, 코드, 상태코드를 올바르게 설정', () => {
-      const error = new AppError(
-        '테스트 에러',
-        ErrorCode.NOT_FOUND,
-        404
-      );
+      const error = new AppError('테스트 에러', ErrorCode.NOT_FOUND, 404);
 
       expect(error.message).toBe('테스트 에러');
       expect(error.code).toBe(ErrorCode.NOT_FOUND);

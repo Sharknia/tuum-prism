@@ -116,9 +116,10 @@ export function TableOfContents({ items }: TableOfContentsProps) {
     before:rounded-full before:transition-colors
     transition-colors
     focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent) focus-visible:ring-offset-2
-    ${isActive
-      ? 'text-(--accent) font-medium before:bg-(--accent) before:w-1'
-      : 'text-(--muted) hover:text-(--foreground) before:bg-transparent hover:before:bg-(--border)'
+    ${
+      isActive
+        ? 'text-(--accent) font-medium before:bg-(--accent) before:w-1'
+        : 'text-(--muted) hover:text-(--foreground) before:bg-transparent hover:before:bg-(--border)'
     }`.trim();
 
   return (
@@ -132,8 +133,8 @@ export function TableOfContents({ items }: TableOfContentsProps) {
           >
             📑 목차
           </h3>
-          <ul 
-            className="space-y-0.5 text-sm max-h-[calc(100vh-10rem)] overflow-y-auto pr-2" 
+          <ul
+            className="space-y-0.5 text-sm max-h-[calc(100vh-10rem)] overflow-y-auto pr-2"
             aria-labelledby="toc-heading"
           >
             {items.map((item, index) => (

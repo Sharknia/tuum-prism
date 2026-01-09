@@ -9,15 +9,15 @@
 
 ### 지원 키
 
-| 키 | 동작 | 컴포넌트 |
-|----|------|----------|
-| `Tab` | 포커스 이동 | 전체 |
-| `Shift + Tab` | 역방향 포커스 이동 | 전체 |
-| `Enter` | 선택/활성화 | 버튼, 링크 |
-| `Escape` | 닫기 | 모바일 목차, 검색창, 드롭다운 |
-| `↑` `↓` | 항목 이동 | 목차 (데스크탑) |
-| `Home` | 첫 항목으로 | 목차 (데스크탑) |
-| `End` | 마지막 항목으로 | 목차 (데스크탑) |
+| 키            | 동작               | 컴포넌트                      |
+| ------------- | ------------------ | ----------------------------- |
+| `Tab`         | 포커스 이동        | 전체                          |
+| `Shift + Tab` | 역방향 포커스 이동 | 전체                          |
+| `Enter`       | 선택/활성화        | 버튼, 링크                    |
+| `Escape`      | 닫기               | 모바일 목차, 검색창, 드롭다운 |
+| `↑` `↓`       | 항목 이동          | 목차 (데스크탑)               |
+| `Home`        | 첫 항목으로        | 목차 (데스크탑)               |
+| `End`         | 마지막 항목으로    | 목차 (데스크탑)               |
 
 ### 구현 예시
 
@@ -56,13 +56,13 @@ const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
 
 ### 필수 속성
 
-| 속성 | 용도 | 예시 |
-|------|------|------|
-| `aria-label` | 스크린 리더용 레이블 | `aria-label="검색"` |
-| `aria-expanded` | 열림/닫힘 상태 | `aria-expanded={isOpen}` |
-| `aria-current` | 현재 위치 표시 | `aria-current="location"` |
-| `aria-controls` | 제어 대상 연결 | `aria-controls={dropdownId}` |
-| `aria-hidden` | 스크린 리더에서 숨김 | `aria-hidden="true"` (아이콘) |
+| 속성            | 용도                 | 예시                          |
+| --------------- | -------------------- | ----------------------------- |
+| `aria-label`    | 스크린 리더용 레이블 | `aria-label="검색"`           |
+| `aria-expanded` | 열림/닫힘 상태       | `aria-expanded={isOpen}`      |
+| `aria-current`  | 현재 위치 표시       | `aria-current="location"`     |
+| `aria-controls` | 제어 대상 연결       | `aria-controls={dropdownId}`  |
+| `aria-hidden`   | 스크린 리더에서 숨김 | `aria-hidden="true"` (아이콘) |
 
 ### 구현 예시
 
@@ -73,13 +73,15 @@ const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
   aria-label={isOpen ? '목차 닫기' : '목차 열기'}
 >
   목차
-</button>
+</button>;
 
-{isOpen && (
-  <nav id={mobileNavId} aria-label="목차">
-    {/* 내용 */}
-  </nav>
-)}
+{
+  isOpen && (
+    <nav id={mobileNavId} aria-label="목차">
+      {/* 내용 */}
+    </nav>
+  );
+}
 ```
 
 ---
@@ -97,19 +99,17 @@ const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
 ### 구현 예시
 
 ```tsx
-<button
-  className="focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent)"
->
+<button className="focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent)">
   클릭
 </button>
 ```
 
 ### focus vs focus-visible
 
-| 속성 | 활성화 시점 |
-|------|------------|
-| `:focus` | 모든 포커스 (마우스 클릭 포함) |
-| `:focus-visible` | 키보드 포커스만 |
+| 속성             | 활성화 시점                    |
+| ---------------- | ------------------------------ |
+| `:focus`         | 모든 포커스 (마우스 클릭 포함) |
+| `:focus-visible` | 키보드 포커스만                |
 
 **권장**: `focus-visible`을 사용하여 키보드 사용자에게만 포커스 링 표시
 

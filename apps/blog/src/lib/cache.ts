@@ -1,4 +1,3 @@
-import { PostStatus } from '@/domain/post';
 import { NotionPostRepository } from '@/infrastructure/notion/notion.repository';
 import { unstable_cache } from 'next/cache';
 
@@ -59,7 +58,7 @@ function aggregateSeries(posts: { series: string | null }[]): SeriesCount[] {
  */
 export const getCachedMetadata = unstable_cache(
   async (): Promise<BlogMetadata> => {
-    const { results: posts } = await postRepository.findByStatus(PostStatus.Updated, 100);
+    const { results: posts } = await postRepository.findPosts({ limit: 100 });
 
     // 단일 순회로 태그와 시리즈 모두 집계
     const tags = aggregateTags(posts);

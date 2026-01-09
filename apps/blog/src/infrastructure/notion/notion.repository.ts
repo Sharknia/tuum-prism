@@ -1,6 +1,12 @@
-import type { PostRepository } from '@/application/post';
+import type {
+  FindPostsOptions,
+  PaginatedResult,
+  PostPath,
+  PostRepository,
+} from '@/application/post';
 import { AppError, ErrorCode } from '@/domain/errors';
-import type { Post, PostStatus } from '@/domain/post';
+import type { Post } from '@/domain/post';
+import { PostStatus } from '@/domain/post';
 import { fail, ok, type Result } from '@/domain/result';
 import type { APIErrorCode } from '@notionhq/client';
 import { isFullPage } from '@notionhq/client';
@@ -41,26 +47,52 @@ export class NotionPostRepository implements PostRepository {
   }
 
   /**
-   * 특정 상태의 포스트 목록 조회 (페이지네이션 지원)
+   * 포스트 목록 조회 (통합 검색)
+   * 기본적으로 Published(Updated) 상태만 조회
    */
-  async findByStatus(
-    status: PostStatus,
-    limit: number = 20,
-    cursor?: string
-  ): Promise<{ results: Post[]; nextCursor: string | null }> {
+  async findPosts(
+    options: FindPostsOptions = {}
+  ): Promise<PaginatedResult<Post>> {
+    const { tag, series, limit = 20, cursor } = options;
+
     try {
       const dataSourceId = await this.getDataSourceId();
+
+      // 필터 조건 구성
+      const baseFilter = {
+        property: '상태',
+        select: { equals: PostStatus.Updated },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let filter: any = baseFilter;
+
+      if (tag && series) {
+        filter = {
+          and: [
+            baseFilter,
+            { property: 'tags', multi_select: { contains: tag } },
+            { property: 'series', select: { equals: series } },
+          ],
+        };
+      } else if (tag) {
+        filter = {
+          and: [
+            baseFilter,
+            { property: 'tags', multi_select: { contains: tag } },
+          ],
+        };
+      } else if (series) {
+        filter = {
+          and: [baseFilter, { property: 'series', select: { equals: series } }],
+        };
+      }
 
       const response = await this.notion.dataSources.query({
         data_source_id: dataSourceId,
         page_size: limit,
         start_cursor: cursor,
-        filter: {
-          property: '상태',
-          select: {
-            equals: status,
-          },
-        },
+        filter,
         sorts: [
           {
             property: 'date',
@@ -74,27 +106,17 @@ export class NotionPostRepository implements PostRepository {
         nextCursor: response.has_more ? (response.next_cursor ?? null) : null,
       };
     } catch (error) {
-      console.error('Failed to find posts by status:', error);
+      console.error('Failed to find posts:', error);
       return { results: [], nextCursor: null };
     }
   }
 
   /**
-   * 포스트 본문 조회 (Notion Block 데이터)
-   * Official SDK + refract-notion 사용
+   * 단일 포스트 조회
+   * Published(Updated) 상태가 아니면 NotFound 반환
    */
-  async getPostContent(id: string): Promise<NotionBlock[]> {
-    // Config Injection: Repository가 Client를 주입
-    const blocks = await getBlocks(this.notion, id);
-    return blocks;
-  }
-
-  /**
-   * 단일 포스트 조회 (ID로)
-   * Result 패턴으로 404 vs 서버 에러 구분
-   */
-  async findById(id: string): Promise<Result<Post>> {
-    // UUID 형식 검증 (Notion API 호출 전에 먼저 체크)
+  async getPost(id: string): Promise<Result<Post>> {
+    // UUID 형식 검증
     if (!this.isValidUuid(id)) {
       return fail(AppError.notFound('포스트'));
     }
@@ -104,14 +126,21 @@ export class NotionPostRepository implements PostRepository {
       if (!isFullPage(page)) {
         return fail(AppError.notFound('포스트'));
       }
-      return ok(mapNotionPageToPost(page));
+
+      const post = mapNotionPageToPost(page);
+
+      // Published(Updated) 상태 체크 - 보안 강화
+      if (post.status !== PostStatus.Updated) {
+        return fail(AppError.notFound('포스트'));
+      }
+
+      return ok(post);
     } catch (error) {
       // Notion API 에러 분기
       if (this.isNotionApiError(error)) {
         if (error.code === 'object_not_found') {
           return fail(AppError.notFound('포스트'));
         }
-        // validation_error도 404로 처리 (잘못된 ID 형식)
         if (error.code === 'validation_error') {
           return fail(AppError.notFound('포스트'));
         }
@@ -122,9 +151,68 @@ export class NotionPostRepository implements PostRepository {
         }
       }
 
-      console.error('Failed to find post by id:', error);
+      console.error('Failed to get post:', error);
       return fail(AppError.internal('서버 오류가 발생했습니다', error));
     }
+  }
+
+  /**
+   * 사이트맵용 전체 Published 포스트 경로 조회
+   * 페이지네이션을 내부적으로 처리
+   */
+  async getAllPublishedPaths(): Promise<PostPath[]> {
+    const paths: PostPath[] = [];
+    let cursor: string | undefined;
+
+    try {
+      const dataSourceId = await this.getDataSourceId();
+
+      do {
+        const response = await this.notion.dataSources.query({
+          data_source_id: dataSourceId,
+          page_size: 100, // 최대치로 조회
+          start_cursor: cursor,
+          filter: {
+            property: '상태',
+            select: { equals: PostStatus.Updated },
+          },
+          sorts: [
+            {
+              property: 'date',
+              direction: 'descending',
+            },
+          ],
+        });
+
+        for (const page of response.results) {
+          if (isFullPage(page)) {
+            const post = mapNotionPageToPost(page);
+            paths.push({
+              id: post.id,
+              lastModified:
+                post.date?.toISOString() || new Date().toISOString(),
+            });
+          }
+        }
+
+        cursor = response.has_more
+          ? (response.next_cursor ?? undefined)
+          : undefined;
+      } while (cursor);
+
+      return paths;
+    } catch (error) {
+      console.error('Failed to get all published paths:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 포스트 본문 조회 (Notion Block 데이터)
+   */
+  async getPostContent(id: string): Promise<NotionBlock[]> {
+    const blocks = await getBlocks(this.notion, id);
+    return blocks;
   }
 
   /**
@@ -133,7 +221,6 @@ export class NotionPostRepository implements PostRepository {
   private isValidUuid(id: string): boolean {
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    // Notion은 하이픈 없는 32자리 형식도 허용
     const noHyphenRegex = /^[0-9a-f]{32}$/i;
     return uuidRegex.test(id) || noHyphenRegex.test(id);
   }
@@ -153,87 +240,15 @@ export class NotionPostRepository implements PostRepository {
   }
 
   /**
-   * 태그로 포스트 필터링 조회
-   */
-  async findByTag(
-    status: PostStatus,
-    tag: string,
-    limit: number = 100
-  ): Promise<Post[]> {
-    try {
-      const dataSourceId = await this.getDataSourceId();
-
-      const response = await this.notion.dataSources.query({
-        data_source_id: dataSourceId,
-        page_size: limit,
-        filter: {
-          and: [
-            { property: '상태', select: { equals: status } },
-            { property: 'tags', multi_select: { contains: tag } },
-          ],
-        },
-        sorts: [
-          {
-            property: 'date',
-            direction: 'descending',
-          },
-        ],
-      });
-
-      return response.results.filter(isFullPage).map(mapNotionPageToPost);
-    } catch (error) {
-      console.error('Failed to find posts by tag:', error);
-      return [];
-    }
-  }
-
-  /**
-   * 시리즈로 포스트 필터링 조회
-   */
-  async findBySeries(
-    status: PostStatus,
-    series: string,
-    limit: number = 100
-  ): Promise<Post[]> {
-    try {
-      const dataSourceId = await this.getDataSourceId();
-
-      const response = await this.notion.dataSources.query({
-        data_source_id: dataSourceId,
-        page_size: limit,
-        filter: {
-          and: [
-            { property: '상태', select: { equals: status } },
-            { property: 'series', select: { equals: series } },
-          ],
-        },
-        sorts: [
-          {
-            property: 'date',
-            direction: 'descending',
-          },
-        ],
-      });
-
-      return response.results.filter(isFullPage).map(mapNotionPageToPost);
-    } catch (error) {
-      console.error('Failed to find posts by series:', error);
-      return [];
-    }
-  }
-
-  /**
    * 포스트 상태 변경 (systemLog에 자동 기록)
    */
   async updateStatus(id: string, status: PostStatus): Promise<void> {
-    // 현재 상태 조회
     const page = await this.notion.pages.retrieve({ page_id: id });
     let currentStatus = 'Unknown';
     if (isFullPage(page) && page.properties['상태']?.type === 'select') {
       currentStatus = page.properties['상태'].select?.name ?? 'Unknown';
     }
 
-    // 상태 업데이트
     await this.notion.pages.update({
       page_id: id,
       properties: {
@@ -243,7 +258,6 @@ export class NotionPostRepository implements PostRepository {
       },
     });
 
-    // 로그 기록
     await this.appendLog(id, `${currentStatus} → ${status}`);
   }
 
@@ -251,7 +265,6 @@ export class NotionPostRepository implements PostRepository {
    * systemLog에 메시지 append
    */
   async appendLog(id: string, message: string): Promise<void> {
-    // 기존 로그 조회
     const page = await this.notion.pages.retrieve({ page_id: id });
     let existingLog = '';
     if (
@@ -263,7 +276,6 @@ export class NotionPostRepository implements PostRepository {
         .join('');
     }
 
-    // 새 로그 append
     const timestamp = formatLogTimestamp();
     const newLog = existingLog
       ? `${existingLog}\n[${timestamp}] ${message}`

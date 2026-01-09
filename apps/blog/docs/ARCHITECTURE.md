@@ -95,11 +95,11 @@ const post = result.data; // 타입 안전하게 Post 접근
 
 ### 에러 코드
 
-| 코드 | HTTP 상태 | 설명 |
-|------|-----------|------|
-| `NOT_FOUND` | 404 | 리소스를 찾을 수 없음 |
-| `UNAUTHORIZED` | 401 | 인증 오류 |
-| `INTERNAL_ERROR` | 500 | 서버 내부 오류 |
+| 코드             | HTTP 상태 | 설명                  |
+| ---------------- | --------- | --------------------- |
+| `NOT_FOUND`      | 404       | 리소스를 찾을 수 없음 |
+| `UNAUTHORIZED`   | 401       | 인증 오류             |
+| `INTERNAL_ERROR` | 500       | 서버 내부 오류        |
 
 ---
 
@@ -110,7 +110,9 @@ const post = result.data; // 타입 안전하게 Post 접근
 ```typescript
 // lib/cache.ts
 export const getCachedMetadata = unstable_cache(
-  async () => { /* 태그/시리즈 집계 */ },
+  async () => {
+    /* 태그/시리즈 집계 */
+  },
   ['blog-metadata'],
   { revalidate: 300 } // 5분 캐시
 );
@@ -118,11 +120,11 @@ export const getCachedMetadata = unstable_cache(
 
 ### 서버 사이드 필터링
 
-| 필터 유형 | 구현 위치 | 이유 |
-|----------|----------|------|
-| 태그 | Notion API | DB 수준 필터링 가능 |
-| 시리즈 | Notion API | DB 수준 필터링 가능 |
-| 검색어 | 클라이언트 | Notion API 미지원 |
+| 필터 유형 | 구현 위치  | 이유                |
+| --------- | ---------- | ------------------- |
+| 태그      | Notion API | DB 수준 필터링 가능 |
+| 시리즈    | Notion API | DB 수준 필터링 가능 |
+| 검색어    | 클라이언트 | Notion API 미지원   |
 
 ---
 
@@ -130,14 +132,14 @@ export const getCachedMetadata = unstable_cache(
 
 ### 키보드 네비게이션
 
-| 키 | 동작 |
-|---|------|
-| `Tab` | 포커스 이동 |
-| `Enter` | 선택/활성화 |
+| 키       | 동작               |
+| -------- | ------------------ |
+| `Tab`    | 포커스 이동        |
+| `Enter`  | 선택/활성화        |
 | `Escape` | 모달/드롭다운 닫기 |
-| `↑` `↓` | 목차 항목 이동 |
-| `Home` | 첫 항목으로 |
-| `End` | 마지막 항목으로 |
+| `↑` `↓`  | 목차 항목 이동     |
+| `Home`   | 첫 항목으로        |
+| `End`    | 마지막 항목으로    |
 
 ### ARIA 속성
 
