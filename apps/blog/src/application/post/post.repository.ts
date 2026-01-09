@@ -84,5 +84,17 @@ export interface PostRepository {
   /**
    * systemLog에 메시지 append
    */
+  /**
+   * systemLog에 메시지 append
+   */
   appendLog(id: string, message: string): Promise<void>;
+
+  /**
+   * 인접한 포스트(이전/다음 글) 조회
+   * 날짜 기준 정렬
+   */
+  getAdjacentPosts(
+    id: string,
+    date: Date
+  ): Promise<{ prev: Post | null; next: Post | null }>;
 }

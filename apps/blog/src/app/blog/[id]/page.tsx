@@ -1,13 +1,13 @@
 import { NotionRenderer } from '@/components/notion/NotionRenderer';
-import { PostHeader, TableOfContents } from '@/components/post';
+import { PostHeader, PostNavigator, TableOfContents } from '@/components/post';
 import { Profile } from '@/components/profile/Profile';
 import { ErrorCode } from '@/domain/errors';
 import { createImageService } from '@/infrastructure/image';
 import { NotionPostRepository } from '@/infrastructure/notion/notion.repository';
 import {
-    extractTableOfContents,
-    formatReadingTime,
-    hasMeaningfulToc,
+  extractTableOfContents,
+  formatReadingTime,
+  hasMeaningfulToc,
 } from '@/lib';
 import '@/styles/notion-theme.css';
 import { notFound } from 'next/navigation';
@@ -56,6 +56,13 @@ export default async function BlogPostPage({ params }: PageProps) {
   const tocItems = extractTableOfContents(blocks);
   const showToc = hasMeaningfulToc(blocks);
 
+  // 인접 포스트(이전/다음 글) 조회 - 네비게이터용
+  // date가 없으면 updatedAt(작성중 등)을 기준으로 하지만, Published만 조회하므로 date는 존재함
+  const { prev, next } = await postRepository.getAdjacentPosts(
+    post.id,
+    post.date ?? post.updatedAt
+  );
+
   return (
     <div className="container-blog py-8">
       <div className="flex gap-8 items-start">
@@ -82,6 +89,14 @@ export default async function BlogPostPage({ params }: PageProps) {
           <div className="max-w-3xl mx-auto">
             <Profile variant="article-footer" />
           </div>
+
+          {/* 포스트 네비게이터 (이전/다음 글) - 옵션 2: 프로필 하단 */}
+          <div className="max-w-3xl mx-auto mb-16">
+            <PostNavigator prevPost={prev} nextPost={next} />
+          </div>
+
+          {/* 댓글 영역 (추후 예정) - 옵션 2에 따라 네비게이터 하단 배치 */}
+          {/* <Comments /> */}
         </article>
 
         {/* 데스크탑 목차 사이드바 */}

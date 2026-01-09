@@ -1,0 +1,58 @@
+import { Post } from '@/domain/post';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+
+interface PostNavigatorProps {
+  prevPost: Post | null;
+  nextPost: Post | null;
+}
+
+export function PostNavigator({ prevPost, nextPost }: PostNavigatorProps) {
+  return (
+    <div className="border-t border-[var(--border)] mt-4 pt-8">
+      {/* Row 1: Prev/Next Navigation */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+        {/* Previous Post */}
+        <div className="w-full min-w-0">
+          {prevPost ? (
+            <Link
+              href={`/blog/${prevPost.id}`}
+              className="group flex flex-col justify-center h-full p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--card-bg)] hover:border-[var(--accent)] transition-all duration-200 shadow-sm hover:shadow-md"
+            >
+              <div className="flex items-center gap-2 text-sm text-[var(--muted)] font-medium mb-2 group-hover:text-[var(--accent)] transition-colors">
+                <ChevronLeftIcon className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                <span>이전 포스트</span>
+              </div>
+              <div className="font-semibold text-base text-[var(--foreground)] truncate w-full group-hover:text-[var(--accent)] transition-colors">
+                {prevPost.title}
+              </div>
+            </Link>
+          ) : (
+            // Empty placeholder to maintain grid layout
+            <div aria-hidden="true" className="hidden md:block" />
+          )}
+        </div>
+
+        {/* Next Post */}
+        <div className="w-full min-w-0">
+          {nextPost ? (
+            <Link
+              href={`/blog/${nextPost.id}`}
+              className="group flex flex-col justify-center items-end h-full p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--card-bg)] hover:border-[var(--accent)] transition-all duration-200 shadow-sm hover:shadow-md text-right"
+            >
+              <div className="flex items-center gap-2 text-sm text-[var(--muted)] font-medium mb-2 group-hover:text-[var(--accent)] transition-colors">
+                <span>다음 포스트</span>
+                <ChevronRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+              <div className="font-semibold text-base text-[var(--foreground)] truncate w-full group-hover:text-[var(--accent)] transition-colors">
+                {nextPost.title}
+              </div>
+            </Link>
+          ) : (
+            <div aria-hidden="true" className="hidden md:block" />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

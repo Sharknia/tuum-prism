@@ -376,4 +376,69 @@ export class NotionPostRepository implements PostRepository {
       },
     });
   }
+
+  /**
+   * 인접한 포스트(이전/다음 글) 조회
+   */
+  async getAdjacentPosts(
+    id: string,
+    date: Date
+  ): Promise<{ prev: Post | null; next: Post | null }> {
+    try {
+      const dataSourceId = await this.getDataSourceId();
+      const baseFilter = {
+        property: '상태',
+        select: { equals: PostStatus.Updated },
+      };
+
+      // 병렬 요청: 이전 글(Older) & 다음 글(Newer)
+      const [prevResult, nextResult] = await Promise.all([
+        // 이전 글: 현재 날짜보다 작은 것 중 내림차순 정렬 첫 번째
+        this.notion.dataSources.query({
+          data_source_id: dataSourceId,
+          page_size: 1,
+          filter: {
+            and: [
+              baseFilter,
+              {
+                property: 'date',
+                date: { before: date.toISOString() },
+              },
+            ],
+          },
+          sorts: [{ property: 'date', direction: 'descending' }],
+        }),
+        // 다음 글: 현재 날짜보다 큰 것 중 오름차순 정렬 첫 번째
+        this.notion.dataSources.query({
+          data_source_id: dataSourceId,
+          page_size: 1,
+          filter: {
+            and: [
+              baseFilter,
+              {
+                property: 'date',
+                date: { after: date.toISOString() },
+              },
+            ],
+          },
+          sorts: [{ property: 'date', direction: 'ascending' }],
+        }),
+      ]);
+
+      const prev =
+        prevResult.results.length > 0 && isFullPage(prevResult.results[0])
+          ? mapNotionPageToPost(prevResult.results[0])
+          : null;
+
+      const next =
+        nextResult.results.length > 0 && isFullPage(nextResult.results[0])
+          ? mapNotionPageToPost(nextResult.results[0])
+          : null;
+
+      return { prev, next };
+    } catch (error) {
+      console.error('Failed to get adjacent posts:', error);
+      return { prev: null, next: null };
+    }
+  }
 }
