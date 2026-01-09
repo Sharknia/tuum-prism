@@ -2,7 +2,8 @@ import {
     Footer,
     Header,
     HeaderWrapper,
-    ThemeProvider,
+    ScrollToTop,
+    ThemeProvider
 } from '@/components/layout';
 import type { Metadata } from 'next';
 import { Noto_Sans_KR, Source_Code_Pro } from 'next/font/google';
@@ -59,6 +60,7 @@ export default function RootLayout({
           </Suspense>
           <main className="flex-1">{children}</main>
           <Footer />
+          <ScrollToTop />
         </ThemeProvider>
       </body>
     </html>
