@@ -1,8 +1,8 @@
 import type {
-  FindPostsOptions,
-  PaginatedResult,
-  PostPath,
-  PostRepository,
+    FindPostsOptions,
+    PaginatedResult,
+    PostPath,
+    PostRepository,
 } from '@/application/post';
 import { AppError, ErrorCode } from '@/domain/errors';
 import type { Post } from '@/domain/post';
@@ -53,7 +53,7 @@ export class NotionPostRepository implements PostRepository {
   async findPosts(
     options: FindPostsOptions = {}
   ): Promise<PaginatedResult<Post>> {
-    const { tag, series, limit = 20, cursor } = options;
+    const { tag, series, limit = 20, cursor, sortDirection = 'desc' } = options;
 
     try {
       const dataSourceId = await this.getDataSourceId();
@@ -96,7 +96,7 @@ export class NotionPostRepository implements PostRepository {
         sorts: [
           {
             property: 'date',
-            direction: 'descending',
+            direction: sortDirection === 'asc' ? 'ascending' : 'descending',
           },
         ],
       });
@@ -108,6 +108,51 @@ export class NotionPostRepository implements PostRepository {
     } catch (error) {
       console.error('Failed to find posts:', error);
       return { results: [], nextCursor: null };
+    }
+  }
+
+  /**
+   * 시리즈 목록 조회
+   * 모든 Published 포스트를 순회하여 시리즈 목록을 집계
+   */
+  async getSeriesList(): Promise<string[]> {
+    const seriesSet = new Set<string>();
+    let cursor: string | undefined;
+
+    try {
+      const dataSourceId = await this.getDataSourceId();
+
+      do {
+        const response = await this.notion.dataSources.query({
+          data_source_id: dataSourceId,
+          page_size: 100,
+          start_cursor: cursor,
+          filter: {
+            property: '상태',
+            select: { equals: PostStatus.Updated },
+          },
+        });
+
+        for (const page of response.results) {
+          if (isFullPage(page) && 'properties' in page) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const seriesProp = (page.properties as any)['series'];
+            if (seriesProp?.type === 'select' && seriesProp.select) {
+              seriesSet.add(seriesProp.select.name);
+            }
+          }
+        }
+
+        cursor = response.has_more
+          ? (response.next_cursor ?? undefined)
+          : undefined;
+      } while (cursor);
+
+      // 가나다순 정렬
+      return Array.from(seriesSet).sort((a, b) => a.localeCompare(b, 'ko'));
+    } catch (error) {
+      console.error('Failed to get series list:', error);
+      return [];
     }
   }
 

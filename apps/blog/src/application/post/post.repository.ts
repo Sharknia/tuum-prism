@@ -19,6 +19,7 @@ export interface FindPostsOptions {
   series?: string;
   limit?: number;
   cursor?: string;
+  sortDirection?: 'asc' | 'desc';
 }
 
 /**
@@ -51,6 +52,12 @@ export interface PostRepository {
    * @param id - 포스트 ID
    */
   getPost(id: string): Promise<Result<Post>>;
+
+  /**
+   * 시리즈 목록 조회
+   * Notion 데이터베이스의 'series' 속성 옵션을 알파벳순으로 반환
+   */
+  getSeriesList(): Promise<string[]>;
 
   /**
    * 사이트맵용 전체 Published 포스트 경로 조회

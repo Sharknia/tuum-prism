@@ -1,13 +1,14 @@
-import { SearchBar, SeriesDropdown } from '@/components/filter';
+// import { SearchBar, SeriesDropdown } from '@/components/filter';
+import { SearchBar } from '@/components/filter';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { ThemeToggle } from './ThemeToggle';
 
-interface HeaderProps {
-  series?: { name: string; count: number }[];
-}
+// interface HeaderProps {
+//   series?: { name: string; count: number }[];
+// }
 
-export function Header({ series = [] }: HeaderProps) {
+export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-(--border) bg-(--background)/80 backdrop-blur-sm">
       <div className="container-blog flex h-14 items-center justify-between">
@@ -23,17 +24,18 @@ export function Header({ series = [] }: HeaderProps) {
 
         {/* Right side controls */}
         <div className="flex items-center gap-2">
+          {/* Series Link */}
+          <Link
+            href="/series"
+            className="hidden sm:block px-3 py-1.5 rounded-lg hover:bg-(--surface) transition-colors text-sm font-medium"
+          >
+            Series
+          </Link>
+
           {/* Search */}
           <Suspense fallback={<div className="w-5 h-5" />}>
             <SearchBar />
           </Suspense>
-
-          {/* Series dropdown */}
-          {series.length > 0 && (
-            <Suspense fallback={<div className="w-20 h-8" />}>
-              <SeriesDropdown series={series} />
-            </Suspense>
-          )}
 
           {/* Theme Toggle */}
           <ThemeToggle />
