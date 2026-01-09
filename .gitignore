@@ -36,6 +36,3 @@ next-env.d.ts
 # vercel
 .vercel
 
-# agent
-.agent
-.gemini
