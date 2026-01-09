@@ -1,22 +1,35 @@
 import {
-  Footer,
-  Header,
-  HeaderWrapper,
-  ThemeProvider,
+    Footer,
+    Header,
+    HeaderWrapper,
+    ThemeProvider,
 } from '@/components/layout';
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono, Source_Code_Pro } from 'next/font/google';
+import { Noto_Sans_KR, Source_Code_Pro } from 'next/font/google';
+import localFont from 'next/font/local';
 import { Suspense } from 'react';
 import './globals.css';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const notoSansKr = Noto_Sans_KR({
+  variable: '--font-noto-sans-kr',
   subsets: ['latin'],
+  weight: ['100', '300', '400', '500', '700', '900'],
 });
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+const d2Coding = localFont({
+  src: [
+    {
+      path: './fonts/D2Coding.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: './fonts/D2CodingBold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-d2coding',
 });
 
 const sourceCodePro = Source_Code_Pro({
@@ -37,7 +50,7 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${sourceCodePro.variable} antialiased min-h-screen flex flex-col`}
+        className={`${notoSansKr.variable} ${d2Coding.variable} ${sourceCodePro.variable} antialiased min-h-screen flex flex-col`}
       >
         <ThemeProvider>
           {/* HeaderWrapper fetches series data and renders Header */}

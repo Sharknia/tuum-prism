@@ -24,7 +24,7 @@ export function SeriesCard({ series }: SeriesCardProps) {
         </div>
 
         <Link href={`/series/${encodeURIComponent(series.name)}`} className="block no-underline" style={{ color: 'var(--foreground)' }}>
-          <h2 className="text-xl md:text-2xl font-[family-name:var(--font-source-code-pro)] font-bold tracking-tight">
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight">
             {series.name}
           </h2>
         </Link>

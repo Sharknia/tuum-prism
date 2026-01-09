@@ -131,7 +131,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
             id="toc-heading"
             className="text-xs font-semibold text-(--muted) uppercase tracking-widest mb-4 pb-2 border-b border-(--border)"
           >
-            📑 목차
+            목차
           </h3>
           <ul
             className="space-y-0.5 text-sm max-h-[calc(100vh-10rem)] overflow-y-auto pr-2"
@@ -166,7 +166,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
           aria-controls={mobileNavId}
           aria-label={isOpen ? '목차 닫기' : '목차 열기'}
         >
-          <span>📑 목차</span>
+          <span>목차</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"

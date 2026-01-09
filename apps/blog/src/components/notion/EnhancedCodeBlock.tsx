@@ -6,8 +6,8 @@ import mermaid from 'mermaid';
 import { useEffect, useRef, useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import {
-  ghcolors,
-  vscDarkPlus,
+    ghcolors,
+    vscDarkPlus,
 } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 /**
@@ -104,7 +104,7 @@ export function EnhancedCodeBlock({
           codeTagProps={{
             style: {
               fontFamily:
-                'var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                'var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
             },
           }}
         >

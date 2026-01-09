@@ -55,8 +55,8 @@
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-noto-sans-kr);
+  --font-mono: var(--font-d2coding);
 }
 
 /* ============================================
@@ -70,7 +70,7 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-noto-sans-kr), system-ui, sans-serif;
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
@@ -126,6 +126,11 @@ a[class*='bg-']:hover {
   .container-blog {
     padding-inline: 1.5rem;
   }
+}
+
+/* Header/Footer 전용 폰트 */
+.font-header {
+  font-family: var(--font-source-code-pro), monospace;
 }
 
 /* ============================================
