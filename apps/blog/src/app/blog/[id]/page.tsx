@@ -73,7 +73,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           )}
 
           {/* 본문 */}
-          <div className="prose prose-lg max-w-none dark:prose-invert">
+          <div className="prose prose-lg max-w-3xl mx-auto dark:prose-invert">
             <NotionRenderer blocks={blocks} />
           </div>
         </article>

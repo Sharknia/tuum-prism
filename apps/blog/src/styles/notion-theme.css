@@ -1,7 +1,7 @@
 /* Basic Structure */
 .notion-block {
   margin: 4px 0;
-  line-height: 1.5;
+  line-height: 1.75;
   color: var(--foreground, #171717); /* Safari fallback */
 }
 
@@ -48,6 +48,7 @@
 
 .notion-paragraph {
   min-height: 1.5rem; /* Handle empty paragraphs */
+  margin-bottom: 0.25rem; /* Add spacing between paragraphs */
 }
 
 .notion-quote {

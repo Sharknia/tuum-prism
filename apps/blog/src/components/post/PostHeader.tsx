@@ -8,7 +8,7 @@ interface PostHeaderProps {
 
 export function PostHeader({ post, readingTime }: PostHeaderProps) {
   return (
-    <header className="mb-8 pb-8 border-b border-(--border)">
+    <header className="mb-8 pb-8 border-b border-(--border) max-w-3xl mx-auto">
       {/* 뒤로 가기 */}
       <Link
         href="/"
