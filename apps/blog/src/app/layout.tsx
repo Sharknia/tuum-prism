@@ -6,6 +6,7 @@ import {
     ThemeProvider
 } from '@/components/layout';
 import type { Metadata } from 'next';
+import { ScrollRestoration } from 'next-scroll-restoration';
 import { Noto_Sans_KR, Source_Code_Pro } from 'next/font/google';
 import localFont from 'next/font/local';
 import { Suspense } from 'react';
@@ -55,6 +56,7 @@ export default function RootLayout({
       >
         <ThemeProvider>
           {/* HeaderWrapper fetches series data and renders Header */}
+          <ScrollRestoration />
           <Suspense fallback={<Header />}>
             <HeaderWrapper />
           </Suspense>
