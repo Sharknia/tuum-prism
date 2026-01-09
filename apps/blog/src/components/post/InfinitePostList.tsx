@@ -52,7 +52,7 @@ export function InfinitePostList({
           fetchNextPage();
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1, rootMargin: '400px' }
     );
 
     if (observerTarget.current) {
