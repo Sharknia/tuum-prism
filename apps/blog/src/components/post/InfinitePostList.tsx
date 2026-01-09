@@ -21,6 +21,12 @@ export function InfinitePostList({
   const [isLoading, setIsLoading] = useState(false);
   const observerTarget = useRef<HTMLDivElement>(null);
 
+  // prop 변경 시 상태 동기화 (클라이언트 네비게이션 대응)
+  useEffect(() => {
+    setPosts(initialPosts);
+    setCursor(initialCursor);
+  }, [initialPosts, initialCursor]);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       async (entries) => {
