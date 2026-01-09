@@ -1,5 +1,6 @@
 import { TagSidebar } from '@/components/filter';
 import { InfinitePostList } from '@/components/post/InfinitePostList';
+import { Profile } from '@/components/profile/Profile';
 import type { Post } from '@/domain/post';
 import { NotionPostRepository } from '@/infrastructure/notion/notion.repository';
 import { getCachedMetadata } from '@/lib';
@@ -62,14 +63,9 @@ export default async function Home({ searchParams }: HomeProps) {
 
   return (
     <div className="container-blog py-12">
-      {/* 페이지 헤더 */}
+      {/* 페이지 헤더 - Profile 컴포넌트로 교체 */}
       <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-          개발 블로그
-        </h1>
-        <p className="mt-2 text-(--muted)">
-          Notion에서 작성한 글을 자동으로 배포합니다
-        </p>
+        <Profile variant="main-header" />
 
         {/* 활성 필터 표시 */}
         {activeFilters.length > 0 && (
@@ -77,7 +73,7 @@ export default async function Home({ searchParams }: HomeProps) {
             {activeFilters.map((filter) => (
               <span
                 key={filter}
-                className="px-3 py-1 rounded-full bg-(--accent) text-white text-sm"
+                className="px-3 py-1 rounded-full bg-[var(--accent)] text-white text-sm"
               >
                 {filter}
               </span>

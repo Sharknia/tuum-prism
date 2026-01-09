@@ -1,5 +1,6 @@
 import { NotionRenderer } from '@/components/notion/NotionRenderer';
 import { PostHeader, TableOfContents } from '@/components/post';
+import { Profile } from '@/components/profile/Profile';
 import { ErrorCode } from '@/domain/errors';
 import { createImageService } from '@/infrastructure/image';
 import { NotionPostRepository } from '@/infrastructure/notion/notion.repository';
@@ -75,6 +76,11 @@ export default async function BlogPostPage({ params }: PageProps) {
           {/* 본문 */}
           <div className="prose prose-lg max-w-3xl mx-auto dark:prose-invert">
             <NotionRenderer blocks={blocks} />
+          </div>
+
+          {/* 작성자 프로필 */}
+          <div className="max-w-3xl mx-auto">
+            <Profile variant="article-footer" />
           </div>
         </article>
 

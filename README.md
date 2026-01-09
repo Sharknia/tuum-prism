@@ -48,6 +48,50 @@ cp apps/blog/.env.example apps/blog/.env.local
 # Notion API Key 및 Database ID 입력
 ```
 
+### ⚙️ 설정 (Configuration)
+
+이 프로젝트는 `apps/blog/src/config/site.config.ts` 파일을 통해 블로그의 핵심 정보를 중앙에서 관리합니다.
+코드를 수정하지 않고도 설정 파일만으로 나만의 블로그를 완성할 수 있습니다.
+
+#### 블로그 및 프로필 설정
+
+`site.config.ts` 파일을 열어 다음 항목들을 수정하세요:
+
+```typescript
+// apps/blog/src/config/site.config.ts
+export const siteConfig = {
+  blog: {
+    // 블로그 제목 (상단 네비게이션, 브라우저 탭, SEO 제목에 사용됨)
+    title: 'Tuum Prism', 
+  },
+  owner: {
+    // 작성자 이름 (메인 프로필, 게시글 하단 서명에 표시됨)
+    name: 'Furychick',
+    
+    // 프로필 설명 및 SEO 메타 설명 (화면과 검색엔진 모두에 사용됨)
+    description: 'Frontend Developer loves efficient workflows.',
+    
+    // 프로필 이미지 경로 (public 폴더 기준)
+    avatar: '/images/default-profile.svg', 
+    
+    // (선택) 소셜 링크 설정
+    social: {
+      github: 'https://github.com/furychick', // GitHub 프로필 링크
+      email: 'furychick@example.com', // 이메일 주소
+      linkedin: 'https://linkedin.com/in/furychick', // LinkedIn 프로필 링크
+      x: 'https://x.com/furychick', // X (Twitter) 프로필 링크
+      threads: '', // Threads 프로필 링크
+    },
+  },
+};
+```
+
+#### 이미지 변경
+
+1. `apps/blog/public/images/` 폴더에 원하는 프로필 이미지(jpg, png, svg 등)를 넣으세요.
+2. `site.config.ts`의 `owner.avatar` 경로를 변경한 파일명으로 수정하세요.
+
+
 ### 개발 서버 실행
 
 ```bash

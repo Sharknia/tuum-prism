@@ -40,9 +40,13 @@ const sourceCodePro = Source_Code_Pro({
   subsets: ['latin'],
 });
 
+import { siteConfig } from '@/config/site.config';
+
+// ...
+
 export const metadata: Metadata = {
-  title: 'Tuum Prism - 개발 블로그',
-  description: 'Notion 기반 기술 블로그',
+  title: siteConfig.blog.title,
+  description: siteConfig.owner.description,
 };
 
 export default function RootLayout({

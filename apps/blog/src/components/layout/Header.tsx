@@ -1,5 +1,6 @@
 // import { SearchBar, SeriesDropdown } from '@/components/filter';
 import { SearchBar } from '@/components/filter';
+import { siteConfig } from '@/config/site.config';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { ThemeToggle } from './ThemeToggle';
@@ -18,7 +19,7 @@ export function Header() {
           className="flex items-center gap-2 font-bold text-lg transition-colors"
         >
           <span className="font-[family-name:var(--font-source-code-pro)] text-foreground text-xl">
-            Tuum Prism
+            {siteConfig.blog.title}
           </span>
         </Link>
 
