@@ -93,6 +93,7 @@ export default async function Home({ searchParams }: HomeProps) {
           <InfinitePostList
             initialPosts={posts}
             initialCursor={nextCursor}
+            queryKey={['posts', { tag, series, q }]}
             emptyMessage={
               activeFilters.length > 0
                 ? '해당 조건에 맞는 글이 없습니다.'

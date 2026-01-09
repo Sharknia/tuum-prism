@@ -1,9 +1,10 @@
 import {
-    Footer,
-    Header,
-    HeaderWrapper,
-    ScrollToTop,
-    ThemeProvider
+  Footer,
+  Header,
+  HeaderWrapper,
+  QueryProvider,
+  ScrollToTop,
+  ThemeProvider
 } from '@/components/layout';
 import type { Metadata } from 'next';
 import { ScrollRestoration } from 'next-scroll-restoration';
@@ -73,14 +74,16 @@ export default function RootLayout({
         className={`${notoSansKr.variable} ${d2Coding.variable} ${sourceCodePro.variable} antialiased min-h-screen flex flex-col`}
       >
         <ThemeProvider>
-          {/* HeaderWrapper fetches series data and renders Header */}
-          <ScrollRestoration />
-          <Suspense fallback={<Header />}>
-            <HeaderWrapper />
-          </Suspense>
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <ScrollToTop />
+          <QueryProvider>
+            {/* HeaderWrapper fetches series data and renders Header */}
+            <ScrollRestoration />
+            <Suspense fallback={<Header />}>
+              <HeaderWrapper />
+            </Suspense>
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <ScrollToTop />
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

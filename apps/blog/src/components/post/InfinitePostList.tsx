@@ -2,45 +2,54 @@
 
 import { getMorePosts } from '@/app/actions';
 import { Post } from '@/domain/post';
-import { useEffect, useRef, useState } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
 import { PostCard } from './PostCard';
 
 interface InfinitePostListProps {
   initialPosts: Post[];
   initialCursor: string | null;
+  queryKey?: unknown[]; // 필터별 캐시 분리용
   emptyMessage?: string;
 }
 
 export function InfinitePostList({
   initialPosts,
   initialCursor,
+  queryKey = ['posts'],
   emptyMessage = '게시글이 없습니다.',
 }: InfinitePostListProps) {
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [cursor, setCursor] = useState<string | null>(initialCursor);
-  const [isLoading, setIsLoading] = useState(false);
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  // prop 변경 시 상태 동기화 (클라이언트 네비게이션 대응)
-  useEffect(() => {
-    setPosts(initialPosts);
-    setCursor(initialCursor);
-  }, [initialPosts, initialCursor]);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey,
+    queryFn: async ({ pageParam }) => {
+      if (!pageParam) {
+        // 첫 페이지는 initialData에서 제공
+        return { results: initialPosts, nextCursor: initialCursor };
+      }
+      return getMorePosts(pageParam);
+    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    initialData: {
+      pages: [{ results: initialPosts, nextCursor: initialCursor }],
+      pageParams: [null],
+    },
+    staleTime: 5 * 60 * 1000, // 5분간 캐시 유효
+  });
 
+  // Intersection Observer로 무한 스크롤
   useEffect(() => {
     const observer = new IntersectionObserver(
-      async (entries) => {
-        if (entries[0].isIntersecting && cursor && !isLoading) {
-          setIsLoading(true);
-          try {
-            const { results, nextCursor } = await getMorePosts(cursor);
-            setPosts((prev) => [...prev, ...results]);
-            setCursor(nextCursor);
-          } catch (error) {
-            console.error('Failed to load more posts:', error);
-          } finally {
-            setIsLoading(false);
-          }
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
         }
       },
       { threshold: 0.1 }
@@ -50,12 +59,12 @@ export function InfinitePostList({
       observer.observe(observerTarget.current);
     }
 
-    return () => {
-      observer.disconnect();
-    };
-  }, [cursor, isLoading]);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  if (posts.length === 0) {
+  const allPosts = data?.pages.flatMap((page) => page.results) ?? [];
+
+  if (allPosts.length === 0) {
     return (
       <div className="text-center py-16 bg-(--surface) rounded-lg border border-(--border)">
         <p className="text-(--muted)">{emptyMessage}</p>
@@ -65,11 +74,11 @@ export function InfinitePostList({
 
   return (
     <div className="space-y-4">
-      {posts.map((post) => (
+      {allPosts.map((post) => (
         <PostCard key={post.id} post={post} />
       ))}
       <div ref={observerTarget} className="h-4 w-full flex justify-center p-4">
-        {isLoading && (
+        {isFetchingNextPage && (
           <span className="loading loading-spinner loading-sm text-(--muted)">
             Loading...
           </span>
@@ -78,3 +87,4 @@ export function InfinitePostList({
     </div>
   );
 }
+
