@@ -1,6 +1,8 @@
 export type {
-  FindPostsOptions,
-  PaginatedResult,
-  PostPath,
-  PostRepository,
+    FindPostsOptions,
+    PaginatedResult,
+    PostPath,
+    PostRepository,
+    SeriesStats
 } from './post.repository';
+

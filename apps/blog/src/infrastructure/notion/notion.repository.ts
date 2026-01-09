@@ -3,6 +3,7 @@ import type {
     PaginatedResult,
     PostPath,
     PostRepository,
+    SeriesStats,
 } from '@/application/post';
 import { AppError, ErrorCode } from '@/domain/errors';
 import type { Post } from '@/domain/post';
@@ -112,17 +113,21 @@ export class NotionPostRepository implements PostRepository {
   }
 
   /**
-   * 시리즈 목록 조회
-   * 모든 Published 포스트를 순회하여 시리즈 목록을 집계
+   * 시리즈 통계 및 미리보기 조회
+   * 각 시리즈별 포스트 개수, 마지막 업데이트일, 미리보기 포스트(최신순 5개) 반환
    */
-  async getSeriesList(): Promise<string[]> {
-    const seriesSet = new Set<string>();
+  async getSeriesWithStats(): Promise<SeriesStats[]> {
+    const seriesMap = new Map<
+      string,
+      { posts: Post[]; lastUpdated: Date }
+    >();
     let cursor: string | undefined;
 
     try {
       const dataSourceId = await this.getDataSourceId();
 
       do {
+        // 모든 Published 포스트 조회
         const response = await this.notion.dataSources.query({
           data_source_id: dataSourceId,
           page_size: 100,
@@ -131,14 +136,32 @@ export class NotionPostRepository implements PostRepository {
             property: '상태',
             select: { equals: PostStatus.Updated },
           },
+          sorts: [
+            {
+              property: 'date',
+              direction: 'descending', // 최신순 정렬
+            },
+          ],
         });
 
         for (const page of response.results) {
-          if (isFullPage(page) && 'properties' in page) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const seriesProp = (page.properties as any)['series'];
-            if (seriesProp?.type === 'select' && seriesProp.select) {
-              seriesSet.add(seriesProp.select.name);
+          if (isFullPage(page)) {
+            const post = mapNotionPageToPost(page);
+            if (post.series) {
+              const current = seriesMap.get(post.series) || {
+                posts: [],
+                lastUpdated: new Date(0), // 초기값: 아주 먼 과거
+              };
+
+              current.posts.push(post);
+              
+              // 시리즈의 마지막 업데이트일은 가장 최근 포스트의 날짜로 갱신
+              const postDate = post.date || post.updatedAt;
+              if (postDate > current.lastUpdated) {
+                current.lastUpdated = postDate;
+              }
+
+              seriesMap.set(post.series, current);
             }
           }
         }
@@ -148,10 +171,28 @@ export class NotionPostRepository implements PostRepository {
           : undefined;
       } while (cursor);
 
-      // 가나다순 정렬
-      return Array.from(seriesSet).sort((a, b) => a.localeCompare(b, 'ko'));
+      // 통계 정보로 변환
+      return Array.from(seriesMap.entries())
+        .map(([name, data]) => {
+          // 포스트는 이미 조회 시 날짜 내림차순(최신순)으로 정렬되어 있음
+          // 시리즈 상세 페이지는 "오래된 순"이지만, 미리보기는 "최신글"이나 "1장부터" 중 선택 필요.
+          // "책" 컨셉이므로 "1장(오래된 순)"부터 보여주는 것이 목차 느낌에 더 적합함.
+          const sortedPosts = data.posts.sort((a, b) => {
+             const dateA = a.date?.getTime() || 0;
+             const dateB = b.date?.getTime() || 0;
+             return dateA - dateB; // 오래된 순 정렬
+          });
+
+          return {
+            name,
+            count: data.posts.length,
+            lastUpdated: data.lastUpdated,
+            previewPosts: sortedPosts.slice(0, 5), // 첫 5개 챕터 미리보기
+          };
+        })
+        .sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime()); // 최근 업데이트 순
     } catch (error) {
-      console.error('Failed to get series list:', error);
+      console.error('Failed to get series stats:', error);
       return [];
     }
   }

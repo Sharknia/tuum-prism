@@ -27,7 +27,7 @@ export function Header() {
           {/* Series Link */}
           <Link
             href="/series"
-            className="hidden sm:block px-3 py-1.5 rounded-lg hover:bg-(--surface) transition-colors text-sm font-medium"
+            className="px-3 py-1.5 rounded-lg hover:bg-(--surface) transition-colors text-sm font-medium"
           >
             Series
           </Link>

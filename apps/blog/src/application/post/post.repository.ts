@@ -30,6 +30,13 @@ export interface PostPath {
   lastModified: string;
 }
 
+export interface SeriesStats {
+  name: string;
+  count: number;
+  lastUpdated: Date;
+  previewPosts: Post[];
+}
+
 /**
  * Post Repository 인터페이스
  * 클린 아키텍처 Port
@@ -54,10 +61,9 @@ export interface PostRepository {
   getPost(id: string): Promise<Result<Post>>;
 
   /**
-   * 시리즈 목록 조회
-   * Notion 데이터베이스의 'series' 속성 옵션을 알파벳순으로 반환
+   * 시리즈 통계 및 미리보기 조회
    */
-  getSeriesList(): Promise<string[]>;
+  getSeriesWithStats(): Promise<SeriesStats[]>;
 
   /**
    * 사이트맵용 전체 Published 포스트 경로 조회
