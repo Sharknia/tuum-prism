@@ -120,7 +120,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           </div>
 
           {/* 포스트 네비게이터 (이전/다음 글) - 옵션 2: 프로필 하단 */}
-          <div className="max-w-3xl mx-auto mb-16">
+          <div className="max-w-3xl mx-auto mb-8">
             <PostNavigator prevPost={prev} nextPost={next} />
           </div>
 
