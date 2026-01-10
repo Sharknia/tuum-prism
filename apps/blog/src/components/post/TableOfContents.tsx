@@ -10,6 +10,7 @@ interface TableOfContentsProps {
 export function TableOfContents({ items }: TableOfContentsProps) {
   const [activeId, setActiveId] = useState<string>('');
   const [isOpen, setIsOpen] = useState(false);
+  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
 
   // 고유 ID 생성 (ARIA 연결용)
   const mobileNavId = useId();
@@ -111,8 +112,8 @@ export function TableOfContents({ items }: TableOfContentsProps) {
 
   // 버튼 스타일 함수
   const getButtonClassName = (isActive: boolean) =>
-    `relative text-left w-full py-1 pl-3 rounded-r
-    before:absolute before:left-0 before:top-0 before:h-full before:w-0.5
+    `relative text-left w-full leading-7 pl-3 rounded-r
+    before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-4 before:w-0.5
     before:rounded-full before:transition-colors
     transition-colors
     focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent) focus-visible:ring-offset-2
@@ -127,33 +128,49 @@ export function TableOfContents({ items }: TableOfContentsProps) {
       {/* Desktop: 고정 사이드바 */}
       <aside className="hidden lg:block w-64 shrink-0">
         <nav aria-label="목차">
-          <h3
-            id="toc-heading"
-            className="text-xs font-semibold text-(--muted) uppercase tracking-widest mb-4 pb-2 border-b border-(--border)"
+          {/* 헤더 - 클릭하여 접기/펼치기 */}
+          <button
+            onClick={() => setIsDesktopCollapsed(!isDesktopCollapsed)}
+            className="flex items-center justify-between w-full font-header text-xs font-semibold text-(--muted) uppercase tracking-widest mb-4 pb-2 border-b border-(--border) hover:text-(--foreground) transition-colors"
+            aria-expanded={!isDesktopCollapsed}
+            aria-controls="toc-content"
           >
-            목차
-          </h3>
-          <ul
-            className="space-y-0.5 text-sm max-h-[calc(100vh-10rem)] overflow-y-auto pr-2"
-            aria-labelledby="toc-heading"
-          >
-            {items.map((item, index) => (
-              <li
-                key={item.id}
-                style={{ paddingLeft: `${(item.level - 1) * 0.75}rem` }}
-              >
-                <button
-                  id={`toc-item-${index}`}
-                  onClick={() => handleClick(item.id)}
-                  onKeyDown={(e) => handleKeyDown(e, index)}
-                  aria-current={activeId === item.id ? 'location' : undefined}
-                  className={getButtonClassName(activeId === item.id)}
+            <span>Contents</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className={`w-3 h-3 transition-transform ${isDesktopCollapsed ? '' : 'rotate-180'}`}
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+          {!isDesktopCollapsed && (
+            <ul
+              id="toc-content"
+              className="text-sm max-h-[calc(100vh-10rem)] overflow-y-auto pr-2"
+            >
+              {items.map((item, index) => (
+                <li
+                  key={item.id}
+                  style={{ paddingLeft: `${(item.level - 1) * 0.75}rem` }}
                 >
-                  {item.text}
-                </button>
-              </li>
-            ))}
-          </ul>
+                  <button
+                    id={`toc-item-${index}`}
+                    onClick={() => handleClick(item.id)}
+                    onKeyDown={(e) => handleKeyDown(e, index)}
+                    aria-current={activeId === item.id ? 'location' : undefined}
+                    className={getButtonClassName(activeId === item.id)}
+                  >
+                    {item.text}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </nav>
       </aside>
 
@@ -166,7 +183,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
           aria-controls={mobileNavId}
           aria-label={isOpen ? '목차 닫기' : '목차 열기'}
         >
-          <span>목차</span>
+          <span className="font-header">Contents</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -190,7 +207,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
             className="mt-2 p-4 rounded-lg bg-(--surface) border border-(--border)"
             aria-label="목차"
           >
-            <ul className="space-y-0.5 text-sm max-h-[50vh] overflow-y-auto">
+            <ul className="text-sm max-h-[50vh] overflow-y-auto">
               {items.map((item, index) => (
                 <li
                   key={item.id}

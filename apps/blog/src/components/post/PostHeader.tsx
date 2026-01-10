@@ -31,16 +31,6 @@ export function PostHeader({ post, readingTime }: PostHeaderProps) {
         목록으로
       </Link>
 
-      {/* 시리즈 */}
-      {post.series && (
-        <Link
-          href={`/?series=${encodeURIComponent(post.series)}`}
-          className="inline-block mb-3 px-3 py-1 rounded-full bg-(--accent)/10 text-(--accent) text-sm font-medium hover:bg-(--accent)/20 transition-colors"
-        >
-          📚 {post.series}
-        </Link>
-      )}
-
       {/* 제목 */}
       <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight">
         {post.title}

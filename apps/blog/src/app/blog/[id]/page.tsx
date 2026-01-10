@@ -1,5 +1,10 @@
 import { NotionRenderer } from '@/components/notion/NotionRenderer';
-import { PostHeader, PostNavigator, TableOfContents } from '@/components/post';
+import {
+  PostHeader,
+  PostNavigator,
+  SeriesNavigator,
+  TableOfContents,
+} from '@/components/post';
 import { Profile } from '@/components/profile/Profile';
 import { ErrorCode } from '@/domain/errors';
 import { createImageService } from '@/infrastructure/image';
@@ -56,6 +61,17 @@ export default async function BlogPostPage({ params }: PageProps) {
   const tocItems = extractTableOfContents(blocks);
   const showToc = hasMeaningfulToc(blocks);
 
+  // 시리즈 포스트 조회 (시리즈가 있는 경우)
+  let seriesPosts: typeof post[] = [];
+  if (post.series) {
+    const seriesResult = await postRepository.findPosts({
+      series: post.series,
+      sortDirection: 'asc', // 오래된 순 (1화부터)
+      limit: 100, // 충분히 큰 값
+    });
+    seriesPosts = seriesResult.results;
+  }
+
   // 인접 포스트(이전/다음 글) 조회 - 네비게이터용
   // date가 없으면 updatedAt(작성중 등)을 기준으로 하지만, Published만 조회하므로 date는 존재함
   const { prev, next } = await postRepository.getAdjacentPosts(
@@ -70,6 +86,19 @@ export default async function BlogPostPage({ params }: PageProps) {
         <article className="flex-1 min-w-0">
           {/* 포스트 헤더 */}
           <PostHeader post={post} readingTime={readingTime} />
+
+          {/* 모바일 시리즈 네비게이터 */}
+          {post.series && seriesPosts.length > 0 && (
+            <div className="lg:hidden">
+              <Suspense fallback={null}>
+                <SeriesNavigator
+                  seriesName={post.series}
+                  posts={seriesPosts}
+                  currentPostId={post.id}
+                />
+              </Suspense>
+            </div>
+          )}
 
           {/* 모바일 목차 */}
           {showToc && (
@@ -99,12 +128,25 @@ export default async function BlogPostPage({ params }: PageProps) {
           {/* <Comments /> */}
         </article>
 
-        {/* 데스크탑 목차 사이드바 */}
-        {showToc && (
-          <div className="hidden lg:block sticky top-20 self-start">
-            <Suspense fallback={null}>
-              <TableOfContents items={tocItems} />
-            </Suspense>
+        {/* 데스크탑 사이드바: 시리즈 + 목차 */}
+        {(showToc || (post.series && seriesPosts.length > 0)) && (
+          <div className="hidden lg:block sticky top-20 self-start w-64 shrink-0">
+            {/* 시리즈 네비게이터 */}
+            {post.series && seriesPosts.length > 0 && (
+              <Suspense fallback={null}>
+                <SeriesNavigator
+                  seriesName={post.series}
+                  posts={seriesPosts}
+                  currentPostId={post.id}
+                />
+              </Suspense>
+            )}
+            {/* 목차 */}
+            {showToc && (
+              <Suspense fallback={null}>
+                <TableOfContents items={tocItems} />
+              </Suspense>
+            )}
           </div>
         )}
       </div>
