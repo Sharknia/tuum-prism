@@ -9,32 +9,17 @@ interface PostHeaderProps {
 export function PostHeader({ post, readingTime }: PostHeaderProps) {
   return (
     <header className="mb-8 pb-8 border-b border-(--border) max-w-3xl mx-auto">
-      {/* 뒤로 가기 */}
-      <Link
-        href="/"
-        className="inline-flex items-center gap-1 text-sm text-(--muted) hover:text-(--accent) transition-colors mb-6"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="w-4 h-4"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
-          />
-        </svg>
-        목록으로
-      </Link>
-
       {/* 제목 */}
       <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight">
         {post.title}
       </h1>
+
+      {/* 설명 (제목과 중복되지 않을 때만 표시) */}
+      {post.description && post.description !== post.title && (
+        <p className="mt-4 text-lg text-(--muted) leading-relaxed">
+          {post.description}
+        </p>
+      )}
 
       {/* 메타 정보 */}
       <div className="flex flex-wrap items-center gap-3 mt-4 text-sm text-(--muted)">
@@ -62,19 +47,12 @@ export function PostHeader({ post, readingTime }: PostHeaderProps) {
             <Link
               key={tag}
               href={`/?tag=${encodeURIComponent(tag)}`}
-              className="px-3 py-1 rounded-md bg-(--surface) border border-(--border) text-sm hover:bg-(--accent) hover:text-white transition-colors"
+              className="px-3 py-1 rounded-md bg-(--surface) border border-(--border) text-sm text-(--muted) hover:text-(--foreground) hover:border-(--accent) transition-colors"
             >
               #{tag}
             </Link>
           ))}
         </div>
-      )}
-
-      {/* 설명 */}
-      {post.description && (
-        <p className="mt-6 text-lg text-(--muted) leading-relaxed">
-          {post.description}
-        </p>
       )}
     </header>
   );
