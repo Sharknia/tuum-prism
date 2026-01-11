@@ -31,9 +31,27 @@ Notion에 작성된 원본 데이터(틈새의 빛)를 프리즘처럼 굴절시
 
 ## 🚀 시작하기
 
+### 🎯 원터치 설치 (권장)
+
+Vercel에 바로 배포하고 싶다면 **원터치 설치 도구**를 사용하세요:
+
+```bash
+./apps/setup/dist/tuum-setup
+```
+
+> 📖 상세 가이드: [apps/setup/README.md](./apps/setup/README.md)
+
+**필요한 것:**
+1. [Vercel Access Token](https://vercel.com/account/tokens)
+2. [Notion API Key](https://www.notion.so/my-integrations)
+
+---
+
+### 📦 수동 설치
+
 이 프로젝트는 `pnpm`과 `turborepo`를 사용합니다.
 
-### 설치
+#### 설치
 
 ```bash
 pnpm install
