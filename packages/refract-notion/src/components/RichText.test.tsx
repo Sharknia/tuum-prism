@@ -86,4 +86,44 @@ describe('RichText', () => {
     const emElement = screen.getByText('Bold Italic');
     expect(emElement.tagName).toBe('EM');
   });
+
+  describe('mapPageUrl', () => {
+    it('should use original href when mapPageUrl is undefined (Regression)', () => {
+      const richText = [createTextItem('Link', {}, '/page-id')];
+      // @ts-ignore - mapPageUrl not yet in type
+      render(<RichText richText={richText} />);
+      const link = screen.getByText('Link');
+      expect(link).toHaveAttribute('href', '/page-id');
+    });
+
+    it('should transform href using mapPageUrl when provided', () => {
+      const richText = [createTextItem('Link', {}, '/page-id')];
+      const mapPageUrl = (href: string) => `/blog${href}`;
+      // @ts-ignore - mapPageUrl not yet in type
+      render(<RichText richText={richText} mapPageUrl={mapPageUrl} />);
+      const link = screen.getByText('Link');
+      expect(link).toHaveAttribute('href', '/blog/page-id');
+    });
+
+    it('should handle complex transformation logic', () => {
+      const richText = [
+        createTextItem('Internal', {}, '/internal-id'),
+        createTextItem('External', {}, 'https://google.com')
+      ];
+      
+      const mapPageUrl = (href: string) => {
+        if (href.startsWith('http')) return href;
+        return `/blog${href}`;
+      };
+
+      // @ts-ignore - mapPageUrl not yet in type
+      render(<RichText richText={richText} mapPageUrl={mapPageUrl} />);
+      
+      const internalLink = screen.getByText('Internal');
+      expect(internalLink).toHaveAttribute('href', '/blog/internal-id');
+      
+      const externalLink = screen.getByText('External');
+      expect(externalLink).toHaveAttribute('href', 'https://google.com');
+    });
+  });
 });

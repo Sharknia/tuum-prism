@@ -5,9 +5,10 @@ import { mapColorToClass } from '../utils/color-mapper';
 export interface RichTextProps {
   richText: RichTextItemResponse[];
   className?: string; // Optional wrapper class
+  mapPageUrl?: (href: string) => string;
 }
 
-export function RichText({ richText, className }: RichTextProps) {
+export function RichText({ richText, className, mapPageUrl }: RichTextProps) {
   if (!richText || richText.length === 0) {
     return null;
   }
@@ -15,13 +16,13 @@ export function RichText({ richText, className }: RichTextProps) {
   return (
     <span className={className}>
       {richText.map((item, index) => (
-        <RichTextItem key={index} item={item} />
+        <RichTextItem key={index} item={item} mapPageUrl={mapPageUrl} />
       ))}
     </span>
   );
 }
 
-function RichTextItem({ item }: { item: RichTextItemResponse }) {
+function RichTextItem({ item, mapPageUrl }: { item: RichTextItemResponse; mapPageUrl?: (href: string) => string }) {
   const { annotations, type, href } = item;
   let content: React.ReactNode;
 
@@ -65,9 +66,10 @@ function RichTextItem({ item }: { item: RichTextItemResponse }) {
 
   // 4. Wrap with Link
   if (href) {
+    const finalHref = mapPageUrl ? mapPageUrl(href) : href;
     content = (
       <a
-        href={href}
+        href={finalHref}
         className="notion-link"
         target="_blank"
         rel="noopener noreferrer"

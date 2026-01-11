@@ -16,16 +16,18 @@ import { RichText } from './RichText';
 export type BlockProps<T> = {
   block: T;
   children?: React.ReactNode;
+  mapPageUrl?: (href: string) => string;
 };
 
 // --- Paragraph ---
-export function Paragraph({ block, children }: BlockProps<ParagraphBlockObjectResponse>) {
+// --- Paragraph ---
+export function Paragraph({ block, children, mapPageUrl }: BlockProps<ParagraphBlockObjectResponse>) {
   const { color, rich_text } = block.paragraph;
   const colorClass = mapColorToClass(color);
 
   return (
     <p id={block.id} className={`notion-block notion-paragraph ${colorClass}`}>
-      <RichText richText={rich_text} />
+      <RichText richText={rich_text} mapPageUrl={mapPageUrl} />
       {children}
     </p>
   );
@@ -34,7 +36,7 @@ export function Paragraph({ block, children }: BlockProps<ParagraphBlockObjectRe
 // --- Headings ---
 // Heading blocks in Notion cannot have children content in the API structure usually (except Toggle Headings),
 // but if they do (toggleable headings), we render them.
-export function Heading1({ block, children }: BlockProps<Heading1BlockObjectResponse>) {
+export function Heading1({ block, children, mapPageUrl }: BlockProps<Heading1BlockObjectResponse>) {
   const { color, rich_text, is_toggleable } = block.heading_1;
   const colorClass = mapColorToClass(color);
   const plainText = getPlainText(rich_text);
@@ -42,13 +44,13 @@ export function Heading1({ block, children }: BlockProps<Heading1BlockObjectResp
 
   return (
     <div id={block.id} className={`notion-block notion-h1 ${colorClass}`}>
-      <h1 id={headingId} style={{ scrollMarginTop: '80px' }}><RichText richText={rich_text} /></h1>
+      <h1 id={headingId} style={{ scrollMarginTop: '80px' }}><RichText richText={rich_text} mapPageUrl={mapPageUrl} /></h1>
       {is_toggleable && children}
     </div>
   );
 }
 
-export function Heading2({ block, children }: BlockProps<Heading2BlockObjectResponse>) {
+export function Heading2({ block, children, mapPageUrl }: BlockProps<Heading2BlockObjectResponse>) {
   const { color, rich_text, is_toggleable } = block.heading_2;
   const colorClass = mapColorToClass(color);
   const plainText = getPlainText(rich_text);
@@ -56,13 +58,13 @@ export function Heading2({ block, children }: BlockProps<Heading2BlockObjectResp
 
   return (
     <div id={block.id} className={`notion-block notion-h2 ${colorClass}`}>
-      <h2 id={headingId} style={{ scrollMarginTop: '80px' }}><RichText richText={rich_text} /></h2>
+      <h2 id={headingId} style={{ scrollMarginTop: '80px' }}><RichText richText={rich_text} mapPageUrl={mapPageUrl} /></h2>
       {is_toggleable && children}
     </div>
   );
 }
 
-export function Heading3({ block, children }: BlockProps<Heading3BlockObjectResponse>) {
+export function Heading3({ block, children, mapPageUrl }: BlockProps<Heading3BlockObjectResponse>) {
   const { color, rich_text, is_toggleable } = block.heading_3;
   const colorClass = mapColorToClass(color);
   const plainText = getPlainText(rich_text);
@@ -70,21 +72,21 @@ export function Heading3({ block, children }: BlockProps<Heading3BlockObjectResp
 
   return (
     <div id={block.id} className={`notion-block notion-h3 ${colorClass}`}>
-      <h3 id={headingId} style={{ scrollMarginTop: '80px' }}><RichText richText={rich_text} /></h3>
+      <h3 id={headingId} style={{ scrollMarginTop: '80px' }}><RichText richText={rich_text} mapPageUrl={mapPageUrl} /></h3>
       {is_toggleable && children}
     </div>
   );
 }
 
 // --- Quote ---
-export function Quote({ block, children }: BlockProps<QuoteBlockObjectResponse>) {
+export function Quote({ block, children, mapPageUrl }: BlockProps<QuoteBlockObjectResponse>) {
   const { color, rich_text } = block.quote;
   const colorClass = mapColorToClass(color);
 
   return (
     <blockquote id={block.id} className={`notion-block notion-quote ${colorClass}`}>
       <div className="notion-quote-content">
-        <RichText richText={rich_text} />
+        <RichText richText={rich_text} mapPageUrl={mapPageUrl} />
       </div>
       {children}
     </blockquote>
@@ -94,28 +96,28 @@ export function Quote({ block, children }: BlockProps<QuoteBlockObjectResponse>)
 // --- List Items ---
 import { BulletedListItemBlockObjectResponse, NumberedListItemBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 
-export function BulletedListItem({ block, children }: BlockProps<BulletedListItemBlockObjectResponse>) {
+export function BulletedListItem({ block, children, mapPageUrl }: BlockProps<BulletedListItemBlockObjectResponse>) {
   const { color, rich_text } = block.bulleted_list_item;
   const colorClass = mapColorToClass(color);
 
   return (
     <li id={block.id} className={`notion-block notion-list-item notion-bulleted-list-item ${colorClass}`}>
       <div className="notion-list-item-content">
-        <RichText richText={rich_text} />
+        <RichText richText={rich_text} mapPageUrl={mapPageUrl} />
       </div>
       {children}
     </li>
   );
 }
 
-export function NumberedListItem({ block, children }: BlockProps<NumberedListItemBlockObjectResponse>) {
+export function NumberedListItem({ block, children, mapPageUrl }: BlockProps<NumberedListItemBlockObjectResponse>) {
   const { color, rich_text } = block.numbered_list_item;
   const colorClass = mapColorToClass(color);
 
   return (
     <li id={block.id} className={`notion-block notion-list-item notion-numbered-list-item ${colorClass}`}>
       <div className="notion-list-item-content">
-        <RichText richText={rich_text} />
+        <RichText richText={rich_text} mapPageUrl={mapPageUrl} />
       </div>
       {children}
     </li>
@@ -138,7 +140,7 @@ export interface ImageProps {
 }
 
 // Default Image component (can be overridden via IoC)
-export function DefaultImage({ src, alt, caption, className }: ImageProps) {
+export function DefaultImage({ src, alt, caption, className, mapPageUrl }: ImageProps & { mapPageUrl?: (href: string) => string }) {
   return (
     <figure className={`notion-block notion-image ${className ?? ''}`}>
       <img src={src} alt={alt} loading="lazy" />
@@ -149,15 +151,17 @@ export function DefaultImage({ src, alt, caption, className }: ImageProps) {
 
 export function ImageBlock({ 
   block, 
-  ImageComponent = DefaultImage 
+  ImageComponent = DefaultImage,
+  mapPageUrl
 }: { 
   block: ImageBlockObjectResponse; 
   ImageComponent?: React.ComponentType<ImageProps>;
+  mapPageUrl?: (href: string) => string;
 }) {
   const { image } = block;
   const src = image.type === 'external' ? image.external.url : image.file.url;
   const caption = image.caption && image.caption.length > 0 
-    ? <RichText richText={image.caption} /> 
+    ? <RichText richText={image.caption} mapPageUrl={mapPageUrl} /> 
     : undefined;
 
   return (
@@ -170,7 +174,7 @@ export function ImageBlock({
 }
 
 // --- Callout ---
-export function Callout({ block, children }: BlockProps<CalloutBlockObjectResponse>) {
+export function Callout({ block, children, mapPageUrl }: BlockProps<CalloutBlockObjectResponse>) {
   const { icon, color, rich_text } = block.callout;
   const colorClass = mapColorToClass(color);
 
@@ -190,7 +194,7 @@ export function Callout({ block, children }: BlockProps<CalloutBlockObjectRespon
     <div id={block.id} className={`notion-block notion-callout ${colorClass}`}>
       {iconElement}
       <div className="notion-callout-content">
-        <RichText richText={rich_text} />
+        <RichText richText={rich_text} mapPageUrl={mapPageUrl} />
         {children}
       </div>
     </div>
@@ -198,7 +202,7 @@ export function Callout({ block, children }: BlockProps<CalloutBlockObjectRespon
 }
 
 // --- Bookmark ---
-export function Bookmark({ block }: { block: BookmarkBlockObjectResponse }) {
+export function Bookmark({ block, mapPageUrl }: { block: BookmarkBlockObjectResponse, mapPageUrl?: (href: string) => string }) {
   const { url, caption } = block.bookmark;
 
   return (
@@ -208,7 +212,7 @@ export function Bookmark({ block }: { block: BookmarkBlockObjectResponse }) {
       </a>
       {caption && caption.length > 0 && (
         <div className="notion-caption">
-          <RichText richText={caption} />
+          <RichText richText={caption} mapPageUrl={mapPageUrl} />
         </div>
       )}
     </div>
@@ -218,14 +222,14 @@ export function Bookmark({ block }: { block: BookmarkBlockObjectResponse }) {
 // --- Toggle ---
 import { CodeBlockObjectResponse, TableBlockObjectResponse, TableRowBlockObjectResponse, ToggleBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 
-export function Toggle({ block, children }: BlockProps<ToggleBlockObjectResponse>) {
+export function Toggle({ block, children, mapPageUrl }: BlockProps<ToggleBlockObjectResponse>) {
   const { rich_text, color } = block.toggle;
   const colorClass = mapColorToClass(color);
 
   return (
     <details id={block.id} className={`notion-block notion-toggle ${colorClass}`}>
       <summary className="notion-toggle-summary">
-        <RichText richText={rich_text} />
+        <RichText richText={rich_text} mapPageUrl={mapPageUrl} />
       </summary>
       {children}
     </details>
@@ -255,13 +259,15 @@ export function DefaultCodeBlock({ language, code, caption, className }: CodeBlo
 export function CodeBlock({
   block,
   CodeComponent = DefaultCodeBlock,
+  mapPageUrl,
 }: {
   block: CodeBlockObjectResponse;
   CodeComponent?: React.ComponentType<CodeBlockProps>;
+  mapPageUrl?: (href: string) => string;
 }) {
   const { language, rich_text, caption } = block.code;
   const code = rich_text.map((t) => t.plain_text).join('');
-  const captionElement = caption && caption.length > 0 ? <RichText richText={caption} /> : undefined;
+  const captionElement = caption && caption.length > 0 ? <RichText richText={caption} mapPageUrl={mapPageUrl} /> : undefined;
 
   return (
     <CodeComponent
@@ -291,10 +297,12 @@ export function TableRow({
   block,
   isFirstRow,
   hasRowHeader,
+  mapPageUrl,
 }: {
   block: TableRowBlockObjectResponse;
   isFirstRow?: boolean;
   hasRowHeader?: boolean;
+  mapPageUrl?: (href: string) => string;
 }) {
   const { cells } = block.table_row;
 
@@ -305,7 +313,7 @@ export function TableRow({
         const Tag = isHeader ? 'th' : 'td';
         return (
           <Tag key={index} className="notion-table-cell">
-            <RichText richText={cell} />
+            <RichText richText={cell} mapPageUrl={mapPageUrl} />
           </Tag>
         );
       })}
@@ -316,7 +324,7 @@ export function TableRow({
 // --- ToDo ---
 import { ToDoBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 
-export function ToDo({ block, children }: BlockProps<ToDoBlockObjectResponse>) {
+export function ToDo({ block, children, mapPageUrl }: BlockProps<ToDoBlockObjectResponse>) {
   const { rich_text, checked, color } = block.to_do;
   const colorClass = mapColorToClass(color);
 
@@ -330,7 +338,7 @@ export function ToDo({ block, children }: BlockProps<ToDoBlockObjectResponse>) {
           className="notion-to-do-checkbox"
         />
         <div className="notion-to-do-text">
-          <RichText richText={rich_text} />
+          <RichText richText={rich_text} mapPageUrl={mapPageUrl} />
         </div>
       </div>
       {children}
