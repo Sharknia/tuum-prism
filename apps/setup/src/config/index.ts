@@ -11,7 +11,7 @@ export type {
 } from './types';
 
 export {
-    collectBlogConfig, collectConfig,
+    askForDomain, collectBlogConfig, collectConfig,
     collectNotionConfig, collectSocialConfig
 } from './prompts';
 

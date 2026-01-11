@@ -26,6 +26,7 @@ export interface DeploymentOptions {
     buildCommand?: string;
     outputDirectory?: string;
     installCommand?: string;
+    rootDirectory?: string;
   };
 }
 
@@ -59,6 +60,12 @@ const IGNORE_PATTERNS = [
   '*.log',
   '.DS_Store',
   'Thumbs.db',
+  'apps/setup',
+  'apps/mobile',
+  '.turbo',
+  'coverage',
+  'package-lock.json',
+  'yarn.lock',
 ];
 
 /**
@@ -197,7 +204,9 @@ export async function uploadFiles(
 export async function createDeployment(
   options: DeploymentOptions
 ): Promise<Deployment> {
-  return apiRequest<Deployment>('/v13/deployments', {
+  const query = options.projectId ? `?projectId=${options.projectId}` : '';
+  
+  return apiRequest<Deployment>(`/v13/deployments${query}`, {
     method: 'POST',
     body: JSON.stringify({
       name: options.name,
@@ -206,13 +215,10 @@ export async function createDeployment(
         sha: f.sha,
         size: f.size,
       })),
-      projectId: options.projectId,
       target: options.target || 'production',
       projectSettings: options.projectSettings || {
         framework: 'nextjs',
-        buildCommand: 'cd ../.. && pnpm build --filter @tuum/blog',
-        outputDirectory: '.next',
-        installCommand: 'cd ../.. && pnpm install',
+        rootDirectory: 'apps/blog',
       },
     }),
   });
@@ -225,6 +231,17 @@ export async function getDeploymentStatus(
   deploymentId: string
 ): Promise<DeploymentStatus> {
   return apiRequest<DeploymentStatus>(`/v13/deployments/${deploymentId}`);
+}
+
+/**
+ * 배포 이벤트(로그) 조회
+ */
+async function getDeploymentEvents(deploymentId: string): Promise<any[]> {
+  try {
+    return await apiRequest<any[]>(`/v2/deployments/${deploymentId}/events?direction=backward&limit=100`);
+  } catch (e) {
+    return [];
+  }
 }
 
 /**
@@ -253,7 +270,20 @@ export async function waitForDeployment(
     }
 
     if (status.readyState === 'ERROR' || status.readyState === 'CANCELED') {
-      throw new Error(`배포 실패: ${status.readyState}`);
+      let logMsg = '';
+      try {
+        const events = await getDeploymentEvents(deploymentId);
+        const logs = events
+          .filter(e => e.payload?.text || e.text)
+          .map(e => e.payload?.text || e.text)
+          .slice(0, 20); // 최근 20줄
+        if (logs.length > 0) {
+          logMsg = `\n\n[Build Logs]\n${logs.reverse().join('\n')}`;
+        }
+      } catch (e) {
+        // ignore log fetch error
+      }
+      throw new Error(`배포 실패 (${status.readyState})${logMsg}`);
     }
 
     // 3초 대기 후 재시도

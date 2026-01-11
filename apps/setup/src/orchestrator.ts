@@ -5,29 +5,27 @@
  */
 
 import kleur from 'kleur';
-import { join } from 'path';
 import {
-    addDomain,
-    createDeployment,
-    createProject,
-    initClient,
-    prepareFiles,
-    setEnvVariables,
-    uploadFiles,
-    waitForDeployment,
-    type EnvVariable,
+  createDeployment,
+  createProject,
+  initClient,
+  prepareFiles,
+  setEnvVariables,
+  uploadFiles,
+  waitForDeployment,
+  type EnvVariable
 } from './api';
 import { authenticate, type AuthResult } from './auth';
-import { collectConfig, type SetupConfig } from './config';
+import { askForDomain, collectConfig, type SetupConfig } from './config';
 import {
-    clearScreen,
-    hideProgress,
-    pauseBeforeNext,
-    showError,
-    showInfo,
-    showProgress,
-    showStepHeader,
-    showSuccess,
+  clearScreen,
+  hideProgress,
+  pauseBeforeNext,
+  showError,
+  showInfo,
+  showProgress,
+  showStepHeader,
+  showSuccess,
 } from './ui/progress';
 
 /**
@@ -62,6 +60,7 @@ export class Orchestrator {
   private config: SetupConfig | null = null;
   private projectId: string | null = null;
   private projectName: string | null = null;
+  private domainName: string | null = null;
 
   constructor(options: OrchestratorOptions) {
     this.options = options;
@@ -84,7 +83,7 @@ export class Orchestrator {
       await this.collectConfiguration();
       await pauseBeforeNext(800);
 
-      // 3. 프로젝트 생성
+      // 3. 프로젝트 생성 (도메인 재시도 루프 포함)
       await this.createVercelProject();
       await pauseBeforeNext(800);
 
@@ -99,7 +98,7 @@ export class Orchestrator {
       // 6. 완료
       await this.showComplete();
 
-      const domain = this.config?.domain || '';
+      const domain = this.domainName || '';
       return {
         success: true,
         blogUrl: `https://${domain}.vercel.app`,
@@ -141,29 +140,59 @@ export class Orchestrator {
   }
 
   /**
-   * 3. Vercel 프로젝트 생성 + 도메인 설정
+   * 3. Vercel 프로젝트 생성 + 도메인 설정 (재시도 로직)
+   */
+  /**
+   * 3. Vercel 프로젝트 생성 (도메인 재시도 로직)
    */
   private async createVercelProject(): Promise<void> {
     if (!this.config) throw new Error('설정이 필요합니다');
 
-    showStepHeader(InstallSteps.PROJECT, 'Vercel 프로젝트 생성');
-    showProgress(InstallSteps.PROJECT, 'Vercel 프로젝트 생성 중...');
+    let defaultDomain = this.config.blog.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .slice(0, 50);
 
-    // 프로젝트 이름 생성
-    this.projectName = this.config.domain;
+    let retryMessage: string | undefined;
 
-    const project = await createProject({
-      name: this.projectName,
-      framework: 'nextjs',
-    });
+    // 도메인 충돌 시 재시도 루프
+    while (true) {
+      showStepHeader(InstallSteps.PROJECT, 'Vercel 프로젝트 생성');
 
-    this.projectId = project.id;
+      // 도메인 입력 요청 (이것이 프로젝트 이름이 됩니다)
+      const domain = await askForDomain(retryMessage ? undefined : defaultDomain, retryMessage);
+      this.projectName = domain;
+      this.domainName = domain;
 
-    // 도메인 설정
-    showProgress(InstallSteps.PROJECT, '도메인 설정 중...');
-    await addDomain(this.projectId, `${this.config.domain}.vercel.app`);
+      try {
+        // 프로젝트 생성 시도
+        showProgress(InstallSteps.PROJECT, `${domain} 프로젝트 생성 중...`);
+        const project = await createProject({
+          name: this.projectName,
+          framework: 'nextjs',
+        });
+        
+        // 성공 시: Vercel이 자동으로 {name}.vercel.app 할당했음
+        this.projectId = project.id;
+        
+        showSuccess(InstallSteps.PROJECT, `프로젝트 생성 완료: ${this.projectName}`);
+        break; // 성공 시 루프 탈출
 
-    showSuccess(InstallSteps.PROJECT, `프로젝트 생성 완료: ${this.projectName}`);
+      } catch (error: any) {
+        hideProgress();
+        const msg = String(error?.message || '');
+
+        // 이름 충돌 (409) 핸들링
+        if (msg.includes('409') || msg.includes('App name') || msg.includes('already used')) {
+          retryMessage = `⚠️ 이름 '${this.projectName}'(은)는 이미 사용 중입니다. 다른 이름을 입력해주세요.`;
+          await pauseBeforeNext(1000);
+        } else {
+          // 그 외 에러는 throw
+          throw error;
+        }
+      }
+    }
   }
 
   /**
@@ -181,6 +210,8 @@ export class Orchestrator {
       { key: 'NOTION_DATABASE_ID', value: this.config.notion.databaseId, target: ['production', 'preview'] },
 
       // Blog
+      { key: 'NEXT_PUBLIC_BASE_URL', value: `https://${this.projectName}.vercel.app`, target: ['production', 'preview'] },
+      { key: 'ENABLE_EXPERIMENTAL_COREPACK', value: '1', target: ['production', 'preview'] },
       { key: 'NEXT_PUBLIC_SITE_TITLE', value: this.config.blog.title, target: ['production', 'preview'] },
       { key: 'NEXT_PUBLIC_OWNER_NAME', value: this.config.blog.ownerName, target: ['production', 'preview'] },
     ];
@@ -221,10 +252,10 @@ export class Orchestrator {
     showStepHeader(InstallSteps.DEPLOY, 'Vercel 배포');
 
     // 파일 준비
-    const blogDir = join(this.options.sourceDir, 'apps', 'blog');
     showProgress(InstallSteps.DEPLOY, '파일 준비 중...');
-
-    const files = await prepareFiles(blogDir, (current, total) => {
+    
+    // 모노레포 구조이므로 전체 소스를 업로드해야 의존성(packages/*)을 해결할 수 있음
+    const files = await prepareFiles(this.options.sourceDir, (current, total) => {
       showProgress(InstallSteps.DEPLOY, `파일 준비 중... (${current}/${total})`);
     });
 
@@ -269,7 +300,7 @@ export class Orchestrator {
 
     console.log(kleur.green().bold('🎉 Tuum Blog 설치가 완료되었습니다!\n'));
 
-    const domain = this.config?.domain || '';
+    const domain = this.domainName || '';
     const blogUrl = `https://${domain}.vercel.app`;
     const dashboardUrl = `https://vercel.com/${this.authResult?.username}/${this.projectName}`;
 

@@ -31,6 +31,7 @@ export {
 } from './env';
 export {
     createProject,
+    deleteProject,
     getProject,
     listProjects,
     type CreateProjectOptions,

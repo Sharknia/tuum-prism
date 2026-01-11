@@ -20,6 +20,7 @@ export function clearScreen(): void {
  * 단계 헤더 표시 (화면 clear 포함)
  */
 export function showStepHeader(step: string, title: string): void {
+  hideProgress();
   clearScreen();
   console.log(kleur.cyan().bold(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`));
   console.log(kleur.cyan().bold(`  [${step}] ${title}`));

@@ -27,6 +27,5 @@ export interface SetupConfig {
   notion: NotionConfig;
   blog: BlogConfig;
   social: SocialConfig;
-  domain: string;
   siteUrl?: string;
 }

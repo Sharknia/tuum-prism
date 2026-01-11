@@ -6,7 +6,7 @@
 
 import kleur from 'kleur';
 import prompts from 'prompts';
-import { checkSubdomainAvailability, validateDomainName } from '../api/domain';
+import { validateDomainName } from '../api/domain';
 import type { BlogConfig, NotionConfig, SetupConfig, SocialConfig } from './types';
 import {
     validateDatabaseId,
@@ -64,9 +64,9 @@ export async function collectNotionConfig(): Promise<NotionConfig> {
 }
 
 /**
- * 블로그 설정 수집 (도메인 포함)
+ * 블로그 설정 수집 (도메인 입력 제거됨)
  */
-export async function collectBlogConfig(): Promise<{ blog: BlogConfig; domain: string }> {
+export async function collectBlogConfig(): Promise<BlogConfig> {
   console.log(kleur.cyan().bold('\n📝 블로그 설정\n'));
 
   console.log(kleur.dim('블로그의 기본 정보를 설정합니다.'));
@@ -90,34 +90,51 @@ export async function collectBlogConfig(): Promise<{ blog: BlogConfig; domain: s
       name: 'ownerDesc',
       message: '작성자 한 줄 소개 (선택, Enter로 건너뛰기)',
     },
-    {
-      type: 'text',
-      name: 'domain',
-      message: 'Vercel 도메인 (예: my-blog)',
-      hint: '→ my-blog.vercel.app',
-      validate: async (value) => {
-        if (!value) return '도메인을 입력하세요';
-        if (!validateDomainName(value)) {
-          return '소문자, 숫자, 하이픈만 사용 가능합니다';
-        }
-        const available = await checkSubdomainAvailability(value);
-        return available ? true : '이미 사용 중인 도메인입니다';
-      },
-    },
   ]);
 
-  if (!response.title || !response.ownerName || !response.domain) {
+  if (!response.title || !response.ownerName) {
     throw new Error('블로그 설정이 취소되었습니다');
   }
 
   return {
-    blog: {
-      title: response.title,
-      ownerName: response.ownerName,
-      ownerDesc: response.ownerDesc || undefined,
-    },
-    domain: response.domain,
+    title: response.title,
+    ownerName: response.ownerName,
+    ownerDesc: response.ownerDesc || undefined,
   };
+}
+
+/**
+ * 도메인 입력 요청 (재시도 가능)
+ */
+export async function askForDomain(defaultName?: string, retryMessage?: string): Promise<string> {
+  if (retryMessage) {
+    console.log(kleur.yellow(`\n${retryMessage}\n`));
+  } else {
+    console.log(kleur.dim('\nVercel 도메인을 설정합니다.'));
+    console.log(kleur.dim('입력한 이름이 주소가 됩니다: https://{이름}.vercel.app\n'));
+  }
+
+  const response = await prompts({
+    type: 'text',
+    name: 'domain',
+    message: retryMessage ? '새 도메인 입력' : 'Vercel 도메인',
+    initial: defaultName,
+    validate: async (value) => {
+      if (!value) return '도메인을 입력하세요';
+      if (!validateDomainName(value)) {
+        return '소문자, 숫자, 하이픈만 사용 가능합니다';
+      }
+      // 여기서는 API 검증 안 함 (실제 생성 시 확인)
+      // 이유: checkSubdomainAvailability가 정확하지 않을 수 있음 (CDN 캐시 등)
+      return true;
+    },
+  });
+
+  if (!response.domain) {
+    throw new Error('도메인 설정이 취소되었습니다');
+  }
+
+  return response.domain;
 }
 
 /**
@@ -181,8 +198,8 @@ export async function collectSocialConfig(): Promise<SocialConfig> {
  */
 export async function collectConfig(): Promise<SetupConfig> {
   const notion = await collectNotionConfig();
-  const { blog, domain } = await collectBlogConfig();
+  const blog = await collectBlogConfig();
   const social = await collectSocialConfig();
 
-  return { notion, blog, social, domain };
+  return { notion, blog, social };
 }
