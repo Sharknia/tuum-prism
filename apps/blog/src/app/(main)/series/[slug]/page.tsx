@@ -44,9 +44,7 @@ export default async function SeriesDetailPage({ params }: SeriesDetailProps) {
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
           {seriesName}
         </h1>
-        <p className="text-(--muted)">
-          총 {posts.length}개의 글이 있습니다
-        </p>
+        <p className="text-(--muted)">총 {posts.length}개의 글이 있습니다</p>
       </div>
 
       <PostList posts={posts} />

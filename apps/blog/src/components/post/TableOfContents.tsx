@@ -145,7 +145,11 @@ export function TableOfContents({ items }: TableOfContentsProps) {
               className={`w-3 h-3 transition-transform ${isDesktopCollapsed ? '' : 'rotate-180'}`}
               aria-hidden="true"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m19.5 8.25-7.5 7.5-7.5-7.5"
+              />
             </svg>
           </button>
           {!isDesktopCollapsed && (

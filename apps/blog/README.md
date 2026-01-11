@@ -108,8 +108,26 @@ if (!result.success) {
 
    ```bash
    cp .env.example .env.local
-   # .env.local 파일에 Notion API 키 등 입력
    ```
+
+   **필수 설정:**
+
+   | 환경변수             | 설명                    |
+   | -------------------- | ----------------------- |
+   | `NOTION_API_KEY`     | Notion Integration 토큰 |
+   | `NOTION_DATABASE_ID` | 블로그 데이터베이스 ID  |
+
+   **사이트 커스터마이징 (선택):**
+
+   | 환경변수                   | 설명          | 기본값                      |
+   | -------------------------- | ------------- | --------------------------- |
+   | `NEXT_PUBLIC_SITE_TITLE`   | 블로그 제목   | Tuum Prism                  |
+   | `NEXT_PUBLIC_OWNER_NAME`   | 프로필 닉네임 | @tuum_day                   |
+   | `NEXT_PUBLIC_OWNER_DESC`   | 한 줄 소개    | 취미로 하는 1인개발         |
+   | `NEXT_PUBLIC_OWNER_AVATAR` | 프로필 이미지 | /images/default-profile.svg |
+   | `NEXT_PUBLIC_SOCIAL_*`     | 소셜 링크     | (빈 값 시 숨김)             |
+
+   > 사이트 설정 환경변수는 기본값이 있으므로 설정하지 않아도 동작합니다.
 
 3. 개발 서버 실행
    ```bash

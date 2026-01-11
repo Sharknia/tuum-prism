@@ -4,7 +4,7 @@ import {
   HeaderWrapper,
   QueryProvider,
   ScrollToTop,
-  ThemeProvider
+  ThemeProvider,
 } from '@/components/layout';
 import type { Metadata } from 'next';
 import { ScrollRestoration } from 'next-scroll-restoration';

@@ -37,9 +37,11 @@ export function ScrollToTop() {
         transition-all duration-300 ease-out
         hover:scale-105 active:scale-95
         focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent) focus-visible:ring-offset-2
-        ${isVisible 
-          ? 'opacity-100 translate-y-0 pointer-events-auto' 
-          : 'opacity-0 translate-y-4 pointer-events-none'}
+        ${
+          isVisible
+            ? 'opacity-100 translate-y-0 pointer-events-auto'
+            : 'opacity-0 translate-y-4 pointer-events-none'
+        }
       `}
     >
       <svg

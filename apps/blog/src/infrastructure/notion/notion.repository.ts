@@ -1,9 +1,9 @@
 import type {
-    FindPostsOptions,
-    PaginatedResult,
-    PostPath,
-    PostRepository,
-    SeriesStats,
+  FindPostsOptions,
+  PaginatedResult,
+  PostPath,
+  PostRepository,
+  SeriesStats,
 } from '@/application/post';
 import { AppError, ErrorCode } from '@/domain/errors';
 import type { Post } from '@/domain/post';
@@ -117,10 +117,7 @@ export class NotionPostRepository implements PostRepository {
    * 각 시리즈별 포스트 개수, 마지막 업데이트일, 미리보기 포스트(최신순 5개) 반환
    */
   async getSeriesWithStats(): Promise<SeriesStats[]> {
-    const seriesMap = new Map<
-      string,
-      { posts: Post[]; lastUpdated: Date }
-    >();
+    const seriesMap = new Map<string, { posts: Post[]; lastUpdated: Date }>();
     let cursor: string | undefined;
 
     try {
@@ -154,7 +151,7 @@ export class NotionPostRepository implements PostRepository {
               };
 
               current.posts.push(post);
-              
+
               // 시리즈의 마지막 업데이트일은 가장 최근 포스트의 날짜로 갱신
               const postDate = post.date || post.updatedAt;
               if (postDate > current.lastUpdated) {
@@ -178,9 +175,9 @@ export class NotionPostRepository implements PostRepository {
           // 시리즈 상세 페이지는 "오래된 순"이지만, 미리보기는 "최신글"이나 "1장부터" 중 선택 필요.
           // "책" 컨셉이므로 "1장(오래된 순)"부터 보여주는 것이 목차 느낌에 더 적합함.
           const sortedPosts = data.posts.sort((a, b) => {
-             const dateA = a.date?.getTime() || 0;
-             const dateB = b.date?.getTime() || 0;
-             return dateA - dateB; // 오래된 순 정렬
+            const dateA = a.date?.getTime() || 0;
+            const dateB = b.date?.getTime() || 0;
+            return dateA - dateB; // 오래된 순 정렬
           });
 
           return {

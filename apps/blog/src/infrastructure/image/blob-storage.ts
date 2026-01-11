@@ -37,7 +37,7 @@ export class BlobStorageAdapter implements ImageStorageAdapter {
     try {
       await head(url);
       return true;
-    } catch (error) {
+    } catch {
       // BlobNotFoundError 또는 네트워크 에러
       return false;
     }

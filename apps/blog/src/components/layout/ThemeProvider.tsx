@@ -45,9 +45,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // 초기 마운트 시 저장된 테마 및 시스템 테마 확인 (클라이언트 사이드 초기화 - 유효한 패턴)
   useEffect(() => {
     const stored = getStoredTheme();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 클라이언트 초기화에 유효한 패턴
     setThemeState(stored);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setResolvedTheme(stored === 'system' ? getSystemTheme() : stored);
     setMounted(true);
   }, []);
@@ -57,7 +56,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (!mounted) return;
 
     const resolved = theme === 'system' ? getSystemTheme() : theme;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 외부 시스템 동기화에 유효한 패턴
     setResolvedTheme(resolved);
 
     // HTML에 data-theme 속성 설정

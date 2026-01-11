@@ -23,14 +23,19 @@ export function SeriesCard({ series }: SeriesCardProps) {
           <span>Updated {series.lastUpdated.toLocaleDateString()}</span>
         </div>
 
-        <Link href={`/series/${encodeURIComponent(series.name)}`} className="block no-underline" style={{ color: 'var(--foreground)' }}>
+        <Link
+          href={`/series/${encodeURIComponent(series.name)}`}
+          className="block no-underline"
+          style={{ color: 'var(--foreground)' }}
+        >
           <h2 className="text-xl md:text-2xl font-bold tracking-tight">
             {series.name}
           </h2>
         </Link>
 
         <div className="mt-auto pt-2 text-sm text-(--muted)">
-          총 <span className="text-foreground font-bold">{series.count}</span>개의 챕터
+          총 <span className="text-foreground font-bold">{series.count}</span>
+          개의 챕터
         </div>
       </div>
 
@@ -46,32 +51,53 @@ export function SeriesCard({ series }: SeriesCardProps) {
             style={{ color: 'var(--muted)' }}
           >
             전체보기
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <svg
+              className="w-3 h-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </Link>
         </div>
 
         <ul className="flex flex-col gap-2">
-          {series.previewPosts.slice(0, 3).map((post, index) => ( // 3개까지만 노출
-            <li key={post.id} className="group/item">
-              <Link
-                href={`/blog/${post.id}`}
-                className="flex items-baseline gap-3 text-sm hover:text-foreground transition-colors"
-                style={{ color: 'var(--muted)' }}
-              >
-                <span className="font-mono text-xs w-5 text-right" style={{ color: 'var(--muted)' }}>
-                  {(index + 1).toString().padStart(2, '0')}
-                </span>
-                <span className="flex-1 line-clamp-1 border-b border-dashed border-transparent group-hover/item:border-(--border)">
-                  {post.title}
-                </span>
-              </Link>
-            </li>
-          ))}
+          {series.previewPosts.slice(0, 3).map(
+            (
+              post,
+              index // 3개까지만 노출
+            ) => (
+              <li key={post.id} className="group/item">
+                <Link
+                  href={`/blog/${post.id}`}
+                  className="flex items-baseline gap-3 text-sm hover:text-foreground transition-colors"
+                  style={{ color: 'var(--muted)' }}
+                >
+                  <span
+                    className="font-mono text-xs w-5 text-right"
+                    style={{ color: 'var(--muted)' }}
+                  >
+                    {(index + 1).toString().padStart(2, '0')}
+                  </span>
+                  <span className="flex-1 line-clamp-1 border-b border-dashed border-transparent group-hover/item:border-(--border)">
+                    {post.title}
+                  </span>
+                </Link>
+              </li>
+            )
+          )}
           {/* 더보기 표시 */}
           {series.count > 3 && (
-            <li className="flex items-baseline gap-3 text-xs mt-1" style={{ color: 'var(--muted)' }}>
+            <li
+              className="flex items-baseline gap-3 text-xs mt-1"
+              style={{ color: 'var(--muted)' }}
+            >
               <span className="font-mono w-5 text-right opacity-50">+</span>
               <span>{series.count - 3} more chapters...</span>
             </li>

@@ -15,7 +15,7 @@ describe('NotionPostRepository', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (getNotionClient as any).mockReturnValue({
+    (getNotionClient as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       databases: {
         retrieve: vi.fn().mockResolvedValue({
           data_sources: [{ id: 'mock-source-id' }],
@@ -42,11 +42,14 @@ describe('NotionPostRepository', () => {
         last_edited_time: '2026-01-09T10:00:00Z',
         properties: {
           title: { type: 'title', title: [{ plain_text: 'Previous Post' }] },
-          description: { type: 'rich_text', rich_text: [{ plain_text: 'Desc' }] },
+          description: {
+            type: 'rich_text',
+            rich_text: [{ plain_text: 'Desc' }],
+          },
           date: { type: 'date', date: { start: '2026-01-09' } },
           tags: { type: 'multi_select', multi_select: [] },
           series: { type: 'select', select: null },
-          '상태': { type: 'select', select: { name: PostStatus.Updated } },
+          상태: { type: 'select', select: { name: PostStatus.Updated } },
           Slug: { type: 'rich_text', rich_text: [{ plain_text: 'prev-post' }] },
           IDX: { type: 'unique_id', unique_id: { number: 10 } },
         },
@@ -61,11 +64,14 @@ describe('NotionPostRepository', () => {
         last_edited_time: '2026-01-11T10:00:00Z',
         properties: {
           title: { type: 'title', title: [{ plain_text: 'Next Post' }] },
-          description: { type: 'rich_text', rich_text: [{ plain_text: 'Desc' }] },
+          description: {
+            type: 'rich_text',
+            rich_text: [{ plain_text: 'Desc' }],
+          },
           date: { type: 'date', date: { start: '2026-01-11' } },
           tags: { type: 'multi_select', multi_select: [] },
           series: { type: 'select', select: null },
-          '상태': { type: 'select', select: { name: PostStatus.Updated } },
+          상태: { type: 'select', select: { name: PostStatus.Updated } },
           Slug: { type: 'rich_text', rich_text: [{ plain_text: 'next-post' }] },
           IDX: { type: 'unique_id', unique_id: { number: 12 } },
         },
@@ -84,7 +90,10 @@ describe('NotionPostRepository', () => {
           has_more: false,
         });
 
-      const result = await repository.getAdjacentPosts(currentPostId, currentPostDate);
+      const result = await repository.getAdjacentPosts(
+        currentPostId,
+        currentPostDate
+      );
 
       expect(result.prev).toBeDefined();
       expect(result.prev?.id).toBe('prev-id');
@@ -103,7 +112,10 @@ describe('NotionPostRepository', () => {
         .mockResolvedValueOnce({ results: [], has_more: false }) // No prev
         .mockResolvedValueOnce({ results: [], has_more: false }); // No next
 
-      const result = await repository.getAdjacentPosts(currentPostId, currentPostDate);
+      const result = await repository.getAdjacentPosts(
+        currentPostId,
+        currentPostDate
+      );
 
       expect(result.prev).toBeNull();
       expect(result.next).toBeNull();

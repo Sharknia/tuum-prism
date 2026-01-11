@@ -3,10 +3,16 @@ import { describe, expect, it } from 'vitest';
 import { extractTableOfContents, hasMeaningfulToc } from './toc-extractor';
 
 // 테스트용 heading 블록 생성 헬퍼
-function createHeadingBlock(text: string, level: 1 | 2 | 3): NotionBlock {
+let blockCounter = 0;
+function createHeadingBlock(
+  text: string,
+  level: 1 | 2 | 3,
+  customId?: string
+): NotionBlock {
   const type = `heading_${level}` as const;
+  const id = customId ?? `block-${++blockCounter}`;
   return {
-    id: `block-${Math.random()}`,
+    id,
     type,
     [type]: {
       rich_text: [{ plain_text: text }],
@@ -16,13 +22,19 @@ function createHeadingBlock(text: string, level: 1 | 2 | 3): NotionBlock {
 
 function createParagraphBlock(text: string): NotionBlock {
   return {
-    id: `block-${Math.random()}`,
+    id: `para-${++blockCounter}`,
     type: 'paragraph',
     paragraph: {
       rich_text: [{ plain_text: text }],
     },
   } as unknown as NotionBlock;
 }
+
+// 각 테스트 전에 카운터 리셋
+import { beforeEach } from 'vitest';
+beforeEach(() => {
+  blockCounter = 0;
+});
 
 describe('toc-extractor', () => {
   describe('extractTableOfContents', () => {
@@ -44,7 +56,7 @@ describe('toc-extractor', () => {
 
       expect(toc).toHaveLength(1);
       expect(toc[0]).toEqual({
-        id: '소개',
+        id: '소개-block-1', // slug-blockId 형식
         text: '소개',
         level: 1,
       });
@@ -71,7 +83,12 @@ describe('toc-extractor', () => {
       ];
       const toc = extractTableOfContents(blocks);
 
-      expect(toc.map((t) => t.id)).toEqual(['개요', '개요-1', '개요-2']);
+      // 각 블록 ID가 다르므로 고유 ID 보장
+      expect(toc.map((t) => t.id)).toEqual([
+        '개요-block-1',
+        '개요-block-2',
+        '개요-block-3',
+      ]);
     });
 
     it('특수문자가 포함된 제목 처리', () => {
@@ -81,8 +98,8 @@ describe('toc-extractor', () => {
       ];
       const toc = extractTableOfContents(blocks);
 
-      expect(toc[0].id).toBe('hello-world');
-      expect(toc[1].id).toBe('react-nextjs');
+      expect(toc[0].id).toBe('hello-world-block-1');
+      expect(toc[1].id).toBe('react-nextjs-block-2');
     });
 
     it('공백만 있는 heading은 무시', () => {
@@ -100,7 +117,7 @@ describe('toc-extractor', () => {
       const blocks = [createHeadingBlock('가나다 라마바', 1)];
       const toc = extractTableOfContents(blocks);
 
-      expect(toc[0].id).toBe('가나다-라마바');
+      expect(toc[0].id).toBe('가나다-라마바-block-1');
     });
   });
 

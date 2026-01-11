@@ -62,7 +62,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   const showToc = hasMeaningfulToc(blocks);
 
   // 시리즈 포스트 조회 (시리즈가 있는 경우)
-  let seriesPosts: typeof post[] = [];
+  let seriesPosts: (typeof post)[] = [];
   if (post.series) {
     const seriesResult = await postRepository.findPosts({
       series: post.series,

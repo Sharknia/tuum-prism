@@ -21,28 +21,24 @@ export function InfinitePostList({
 }: InfinitePostListProps) {
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
-    queryKey,
-    queryFn: async ({ pageParam }) => {
-      if (!pageParam) {
-        // 첫 페이지는 initialData에서 제공
-        return { results: initialPosts, nextCursor: initialCursor };
-      }
-      return getMorePosts(pageParam);
-    },
-    initialPageParam: null as string | null,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    initialData: {
-      pages: [{ results: initialPosts, nextCursor: initialCursor }],
-      pageParams: [null],
-    },
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유효
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery({
+      queryKey,
+      queryFn: async ({ pageParam }) => {
+        if (!pageParam) {
+          // 첫 페이지는 initialData에서 제공
+          return { results: initialPosts, nextCursor: initialCursor };
+        }
+        return getMorePosts(pageParam);
+      },
+      initialPageParam: null as string | null,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      initialData: {
+        pages: [{ results: initialPosts, nextCursor: initialCursor }],
+        pageParams: [null],
+      },
+      staleTime: 5 * 60 * 1000, // 5분간 캐시 유효
+    });
 
   // Intersection Observer로 무한 스크롤
   useEffect(() => {
@@ -87,4 +83,3 @@ export function InfinitePostList({
     </div>
   );
 }
-

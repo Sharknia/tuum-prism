@@ -1,17 +1,18 @@
 export const siteConfig = {
   blog: {
-    title: 'Tuum Prism',
+    title: process.env.NEXT_PUBLIC_SITE_TITLE || 'Tuum Prism',
   },
   owner: {
-    name: '@tuum_day',
-    description: '취미로 하는 1인개발',
-    avatar: '/images/default-profile.svg',
+    name: process.env.NEXT_PUBLIC_OWNER_NAME || '@tuum_day',
+    description: process.env.NEXT_PUBLIC_OWNER_DESC || '취미로 하는 1인개발',
+    avatar:
+      process.env.NEXT_PUBLIC_OWNER_AVATAR || '/images/default-profile.svg',
     social: {
-      github: 'https://github.com/furychick',
-      email: 'furychick@example.com',
-      linkedin: 'https://linkedin.com/in/furychick',
-      x: 'https://x.com/furychick',
-      threads: 'https://threads.net/@furychick',
+      github: process.env.NEXT_PUBLIC_SOCIAL_GITHUB || '',
+      email: process.env.NEXT_PUBLIC_SOCIAL_EMAIL || '',
+      linkedin: process.env.NEXT_PUBLIC_SOCIAL_LINKEDIN || '',
+      x: process.env.NEXT_PUBLIC_SOCIAL_X || '',
+      threads: process.env.NEXT_PUBLIC_SOCIAL_THREADS || '',
     },
   },
 };

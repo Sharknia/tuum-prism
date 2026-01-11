@@ -16,7 +16,10 @@ export const SocialIcons = {
   ),
   email: (props: React.SVGProps<SVGSVGElement>) => (
     <svg role="img" viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M22 4H2C.9 4 0 4.9 0 6v12c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM20 8l-8 5-8-5V6l8 5 8-5v2z" transform="scale(0.85) translate(2, 2)" />
+      <path
+        d="M22 4H2C.9 4 0 4.9 0 6v12c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM20 8l-8 5-8-5V6l8 5 8-5v2z"
+        transform="scale(0.85) translate(2, 2)"
+      />
     </svg>
   ),
   threads: (props: React.SVGProps<SVGSVGElement>) => (

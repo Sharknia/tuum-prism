@@ -42,13 +42,19 @@ export function SeriesNavigator({
   });
 
   // 호버 시 색상 변경을 위한 핸들러
-  const handleMouseEnter = (e: React.MouseEvent<HTMLAnchorElement>, isActive: boolean) => {
+  const handleMouseEnter = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    isActive: boolean
+  ) => {
     if (!isActive) {
       e.currentTarget.style.color = 'var(--foreground)';
     }
   };
 
-  const handleMouseLeave = (e: React.MouseEvent<HTMLAnchorElement>, isActive: boolean) => {
+  const handleMouseLeave = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    isActive: boolean
+  ) => {
     if (!isActive) {
       e.currentTarget.style.color = 'var(--muted)';
     }
@@ -76,7 +82,11 @@ export function SeriesNavigator({
               className={`w-3 h-3 transition-transform ${isDesktopCollapsed ? '' : 'rotate-180'}`}
               aria-hidden="true"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m19.5 8.25-7.5 7.5-7.5-7.5"
+              />
             </svg>
           </button>
 
@@ -104,29 +114,28 @@ export function SeriesNavigator({
                 className="text-sm max-h-[calc(100vh-20rem)] overflow-y-auto pr-2"
                 aria-label="챕터 목록"
               >
-            {posts.map((post, index) => {
-              const isActive = post.id === currentPostId;
-              return (
-                <li key={post.id}>
-                  <Link
-                    href={`/blog/${post.id}`}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={getItemClassName(isActive)}
-                    style={getItemStyle(isActive)}
-                    onMouseEnter={(e) => handleMouseEnter(e, isActive)}
-                    onMouseLeave={(e) => handleMouseLeave(e, isActive)}
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      <span className="font-mono text-xs w-5 text-right shrink-0 opacity-60"
+                {posts.map((post, index) => {
+                  const isActive = post.id === currentPostId;
+                  return (
+                    <li key={post.id}>
+                      <Link
+                        href={`/blog/${post.id}`}
+                        aria-current={isActive ? 'page' : undefined}
+                        className={getItemClassName(isActive)}
+                        style={getItemStyle(isActive)}
+                        onMouseEnter={(e) => handleMouseEnter(e, isActive)}
+                        onMouseLeave={(e) => handleMouseLeave(e, isActive)}
                       >
-                        {(index + 1).toString().padStart(2, '0')}
-                      </span>
-                      <span className="line-clamp-1">{post.title}</span>
-                    </span>
-                  </Link>
-                </li>
-              );
-              })}
+                        <span className="inline-flex items-center gap-2">
+                          <span className="font-mono text-xs w-5 text-right shrink-0 opacity-60">
+                            {(index + 1).toString().padStart(2, '0')}
+                          </span>
+                          <span className="line-clamp-1">{post.title}</span>
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </>
           )}
@@ -196,9 +205,8 @@ export function SeriesNavigator({
                       onMouseEnter={(e) => handleMouseEnter(e, isActive)}
                       onMouseLeave={(e) => handleMouseLeave(e, isActive)}
                     >
-                        <span className="inline-flex items-center gap-2">
-                          <span className="font-mono text-xs w-5 text-right shrink-0 opacity-60"
-                        >
+                      <span className="inline-flex items-center gap-2">
+                        <span className="font-mono text-xs w-5 text-right shrink-0 opacity-60">
                           {(index + 1).toString().padStart(2, '0')}
                         </span>
                         <span className="line-clamp-1">{post.title}</span>

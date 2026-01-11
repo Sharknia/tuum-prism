@@ -14,9 +14,7 @@ export default async function SeriesPage() {
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
           Series
         </h1>
-        <p className="text-(--muted)">
-          주제별로 정리된 연재물 목록입니다
-        </p>
+        <p className="text-(--muted)">주제별로 정리된 연재물 목록입니다</p>
       </div>
 
       <div className="flex flex-col gap-4">
@@ -33,4 +31,3 @@ export default async function SeriesPage() {
     </div>
   );
 }
-

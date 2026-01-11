@@ -13,10 +13,10 @@
 export { BlobStorageAdapter } from './blob-storage';
 export { ImageServiceImpl } from './image.service';
 export type {
-    ImageMetadata,
-    ImageProcessResult,
-    ImageService,
-    ImageStorageAdapter
+  ImageMetadata,
+  ImageProcessResult,
+  ImageService,
+  ImageStorageAdapter,
 } from './image.types';
 
 import { BlobStorageAdapter } from './blob-storage';
@@ -35,7 +35,9 @@ export function createImageService(): ImageService {
   const token = process.env.BLOB_READ_WRITE_TOKEN;
 
   if (!token) {
-    console.log('[Image] BLOB_READ_WRITE_TOKEN not found, using passthrough service');
+    console.log(
+      '[Image] BLOB_READ_WRITE_TOKEN not found, using passthrough service'
+    );
     return new PassthroughImageService();
   }
 

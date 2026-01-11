@@ -41,7 +41,9 @@ export class ImageServiceImpl implements ImageService {
       return blocks;
     }
 
-    console.log(`[Image] Processing ${imageBlocks.length} images for post ${postId}`);
+    console.log(
+      `[Image] Processing ${imageBlocks.length} images for post ${postId}`
+    );
 
     // 병렬로 영구 URL 확보
     const urlMap = new Map<string, string>();
@@ -80,10 +82,10 @@ export class ImageServiceImpl implements ImageService {
     const path = `images/${postId}/${blockId}.${ext}`;
 
     // 예상 URL 생성 (Vercel Blob URL 패턴)
-    // 실제로는 upload 후의 URL을 사용해야 하지만, 
+    // 실제로는 upload 후의 URL을 사용해야 하지만,
     // exists 체크를 위해 path 기반으로 확인
     const expectedUrl = await this.tryGetExistingUrl(path);
-    
+
     if (expectedUrl) {
       console.log(`[Image] Cache hit: ${blockId}`);
       return expectedUrl;
@@ -93,7 +95,7 @@ export class ImageServiceImpl implements ImageService {
     console.log(`[Image] Uploading: ${blockId}`);
     const buffer = await this.downloadImage(notionUrl);
     const contentType = CONTENT_TYPE_MAP[ext] || 'application/octet-stream';
-    
+
     return this.storage.upload(buffer, path, contentType);
   }
 
@@ -101,7 +103,7 @@ export class ImageServiceImpl implements ImageService {
    * 기존 업로드된 이미지 URL 확인
    * path로 업로드된 이미지가 있으면 해당 URL 반환
    */
-  private async tryGetExistingUrl(path: string): Promise<string | null> {
+  private async tryGetExistingUrl(_path: string): Promise<string | null> {
     // Vercel Blob은 동일 path로 업로드 시 동일 URL 반환
     // 하지만 exists 체크를 위해서는 전체 URL이 필요
     // 여기서는 간단히 upload를 시도하고 이미 존재하면 해당 URL 사용
@@ -140,8 +142,16 @@ export class ImageServiceImpl implements ImageService {
    */
   private getImageUrl(block: NotionBlock): string | null {
     if (block.type !== 'image') return null;
-    
-    const image = (block as any).image;
+
+    const image = (
+      block as NotionBlock & {
+        image: {
+          type: string;
+          file?: { url: string };
+          external?: { url: string };
+        };
+      }
+    ).image;
     if (!image) return null;
 
     if (image.type === 'file' && image.file?.url) {
@@ -188,8 +198,10 @@ export class ImageServiceImpl implements ImageService {
         // 이미지 블록이면 URL 교체
         if (block.type === 'image' && urlMap.has(block.id)) {
           const newUrl = urlMap.get(block.id)!;
-          const image = (block as any).image;
-          
+          const image = (
+            block as NotionBlock & { image: Record<string, unknown> }
+          ).image;
+
           newBlock = {
             ...block,
             image: {
@@ -200,7 +212,7 @@ export class ImageServiceImpl implements ImageService {
               // file 속성 제거
               file: undefined,
             },
-          } as NotionBlock;
+          } as unknown as NotionBlock;
         }
 
         // 자식 블록 재귀 처리

@@ -1,3 +1,4 @@
+import type { NotionBlock } from '@tuum/refract-notion';
 import { describe, expect, it, vi } from 'vitest';
 import type { ImageStorageAdapter } from './image.types';
 
@@ -23,7 +24,10 @@ describe('ImageService', () => {
       const service = new ImageServiceImpl(mockStorage);
       const blocks = [{ id: '1', type: 'paragraph' as const, children: [] }];
 
-      const result = await service.processImages(blocks as any, 'post-1');
+      const result = await service.processImages(
+        blocks as unknown as NotionBlock[],
+        'post-1'
+      );
 
       expect(result).toBe(blocks); // Same reference, not processed
       expect(mockStorage.upload).not.toHaveBeenCalled();
@@ -37,7 +41,9 @@ describe('ImageService', () => {
 
       const { ImageServiceImpl } = await import('./image.service');
       const mockStorage: ImageStorageAdapter = {
-        upload: vi.fn().mockResolvedValue('https://blob.vercel-storage.com/test.jpg'),
+        upload: vi
+          .fn()
+          .mockResolvedValue('https://blob.vercel-storage.com/test.jpg'),
         exists: vi.fn().mockResolvedValue(false),
         delete: vi.fn(),
       };
@@ -68,13 +74,20 @@ describe('ImageService', () => {
         },
       ];
 
-      const result = await service.processImages(blocks as any, 'post-1');
+      const result = await service.processImages(
+        blocks as unknown as NotionBlock[],
+        'post-1'
+      );
 
       expect(mockStorage.upload).toHaveBeenCalled();
       // The nested image URL should be replaced
-      expect((result[0].children?.[0] as any).image.external.url).toBe(
-        'https://blob.vercel-storage.com/test.jpg'
-      );
+      expect(
+        (
+          result[0].children?.[0] as unknown as {
+            image: { external: { url: string } };
+          }
+        ).image.external.url
+      ).toBe('https://blob.vercel-storage.com/test.jpg');
     });
   });
 });
