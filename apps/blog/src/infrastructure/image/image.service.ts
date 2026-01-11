@@ -20,13 +20,12 @@ const CONTENT_TYPE_MAP: Record<string, string> = {
  * 기능:
  * - Notion 블록에서 이미지 추출
  * - Notion signed URL → Blob 영구 URL 변환
- * - Graceful fallback: enabled=false 시 처리 스킵
+ *
+ * 환경변수 없는 경우 폴백은 createImageService() 팩토리에서
+ * PassthroughImageService를 반환하여 처리한다.
  */
 export class ImageServiceImpl implements ImageService {
-  constructor(
-    private storage: ImageStorageAdapter,
-    private enabled: boolean = true
-  ) {}
+  constructor(private storage: ImageStorageAdapter) {}
 
   /**
    * Notion 블록 배열의 이미지 URL을 영구 URL로 변환
@@ -35,14 +34,6 @@ export class ImageServiceImpl implements ImageService {
     blocks: NotionBlock[],
     postId: string
   ): Promise<NotionBlock[]> {
-    // Graceful Fallback: 비활성화 상태면 원본 반환
-    if (!this.enabled) {
-      console.log(
-        '[Image] Service disabled (storage not configured), using original URLs'
-      );
-      return blocks;
-    }
-
     // 이미지 블록 추출 (중첩 포함)
     const imageBlocks = this.extractImageBlocks(blocks);
 

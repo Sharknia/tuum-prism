@@ -22,14 +22,22 @@ export type {
 import { BlobStorageAdapter } from './blob-storage';
 import { ImageServiceImpl } from './image.service';
 import type { ImageService } from './image.types';
+import { PassthroughImageService } from './passthrough-image.service';
 
 /**
  * ImageService 팩토리 함수
- * 환경에 따라 적절한 스토리지 어댑터 선택
+ *
+ * 환경변수 체크를 중앙화하여 적절한 서비스 구현체를 반환한다.
+ * - BLOB_READ_WRITE_TOKEN 있음 → ImageServiceImpl (실제 업로드)
+ * - BLOB_READ_WRITE_TOKEN 없음 → PassthroughImageService (원본 반환)
  */
 export function createImageService(): ImageService {
-  // 현재는 Vercel Blob만 지원
-  // 추후 Cloudinary 등 추가 가능
-  const storage = new BlobStorageAdapter();
-  return new ImageServiceImpl(storage);
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+
+  if (!token) {
+    console.log('[Image] BLOB_READ_WRITE_TOKEN not found, using passthrough service');
+    return new PassthroughImageService();
+  }
+
+  return new ImageServiceImpl(new BlobStorageAdapter());
 }
