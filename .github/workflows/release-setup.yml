@@ -1,0 +1,27 @@
+name: Release Setup Binary
+on:
+  push:
+    tags: ['setup-v*']
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            target: bun-darwin-arm64
+            name: tuum-setup-macos
+          - os: windows-latest
+            target: bun-windows-x64
+            name: tuum-setup-win.exe
+          - os: ubuntu-latest
+            target: bun-linux-x64
+            name: tuum-setup-linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      - run: bun build apps/setup/src/index.ts --compile --target=${{ matrix.target }} --outfile ${{ matrix.name }}
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ matrix.name }}

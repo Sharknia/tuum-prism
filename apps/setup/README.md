@@ -24,21 +24,29 @@ Vercel에 Tuum Blog를 배포하는 CLI 설치 마법사입니다.
 
 ## 🚀 실행 방법
 
-### 방법 1: 바이너리 직접 실행 (권장)
+### 방법 1: GitHub Releases에서 다운로드 (권장)
+
+[Releases 페이지](https://github.com/Sharknia/tuum-prism/releases)에서 OS에 맞는 파일 다운로드:
+- **Mac**: `tuum-setup-macos`
+- **Windows**: `tuum-setup-win.exe`
+- **Linux**: `tuum-setup-linux`
+
+### 방법 2: 로컬 빌드 (개발용)
 
 ```bash
-# 저장소 루트에서
-./apps/setup/dist/tuum-setup
+cd apps/setup
+bun build src/index.ts --compile --outfile dist/tuum-setup
+./dist/tuum-setup
 ```
 
-### 방법 2: Bun 개발 모드
+### 방법 3: Bun 개발 모드
 
 ```bash
 cd apps/setup
 bun run src/index.ts
 ```
 
-### 방법 3: pnpm 스크립트
+### 방법 4: pnpm 스크립트
 
 ```bash
 # 루트에서
@@ -95,20 +103,33 @@ pnpm --filter @tuum/setup dev
 
 ---
 
-## 📦 빌드
+## 📦 빌드 & 릴리즈 (개발자용)
 
-바이너리를 직접 빌드하려면:
+### 로컬 빌드
 
 ```bash
 cd apps/setup
 bun build src/index.ts --compile --outfile dist/tuum-setup
 ```
 
-크로스 플랫폼 빌드:
+### 크로스 플랫폼 빌드
+
 ```bash
 # Mac
 bun build src/index.ts --compile --target=bun-darwin-arm64 --outfile dist/tuum-setup-macos
 
 # Windows
 bun build src/index.ts --compile --target=bun-windows-x64 --outfile dist/tuum-setup-win.exe
+
+# Linux
+bun build src/index.ts --compile --target=bun-linux-x64 --outfile dist/tuum-setup-linux
+```
+
+### GitHub Releases 자동 배포
+
+태그를 푸시하면 GitHub Actions가 자동으로 3개 플랫폼 바이너리를 빌드하고 Releases에 업로드합니다:
+
+```bash
+git tag setup-v1.0.0
+git push origin setup-v1.0.0
 ```

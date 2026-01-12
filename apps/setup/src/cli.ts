@@ -73,9 +73,7 @@ export async function main(): Promise<void> {
 
   if (result.started) {
     // 오케스트레이터 실행
-    const orchestrator = new Orchestrator({
-      sourceDir: process.cwd(),
-    });
+    const orchestrator = new Orchestrator();
 
     const installResult = await orchestrator.run();
 

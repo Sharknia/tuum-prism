@@ -210,9 +210,15 @@ bun build src/index.ts --compile --outfile dist/tuum-setup
 
 ### 1. 준비
 - [x] Notion 템플릿 복제 & API Key 획득
-- [x] GitHub 레포지토리 Clone (또는 ZIP 다운로드)
+- ~~GitHub 레포지토리 Clone~~ → **불필요! CLI가 자동으로 소스 다운로드**
 
-### 2. 실행
+### 2. 바이너리 다운로드
+- [GitHub Releases](https://github.com/Sharknia/tuum-prism/releases)에서 OS에 맞는 파일 다운로드
+  - Mac: `tuum-setup-macos`
+  - Windows: `tuum-setup-win.exe`
+  - Linux: `tuum-setup-linux`
+
+### 3. 실행
 
 **Mac:**
 ```bash
@@ -279,10 +285,11 @@ tuum-setup.exe
 ## 📅 구현 로드맵
 
 ### Phase 1: 핵심 기능 (MVP)
-- [ ] OAuth 인증 모듈
-- [ ] 대화형 설정 UI
-- [ ] 환경변수 설정 API 연동
-- [ ] 기본 배포 기능
+- [x] PAT 인증 모듈 (OAuth는 추후)
+- [x] 대화형 설정 UI
+- [x] 환경변수 설정 API 연동
+- [x] 기본 배포 기능
+- [x] GitHub Archive 자동 다운로드 (로컬 파일 불필요)
 
 ### Phase 2: 안정화
 - [ ] 에러 핸들링 강화
@@ -290,8 +297,9 @@ tuum-setup.exe
 - [ ] 진행 상황 표시 개선
 
 ### Phase 3: 패키징 & 배포
-- [ ] pkg/Bun으로 바이너리 생성
-- [ ] GitHub Releases 자동화
+- [x] Bun으로 바이너리 생성
+- [x] GitHub Actions 크로스 플랫폼 빌드 (`.github/workflows/release-setup.yml`)
+- [x] GitHub Releases 자동화
 - [ ] 설치 가이드 문서화
 
 ---

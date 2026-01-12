@@ -6,26 +6,26 @@
 
 import kleur from 'kleur';
 import {
-  createDeployment,
-  createProject,
-  initClient,
-  prepareFiles,
-  setEnvVariables,
-  uploadFiles,
-  waitForDeployment,
-  type EnvVariable
+    createDeployment,
+    createProject,
+    initClient,
+    setEnvVariables,
+    uploadFiles,
+    waitForDeployment,
+    type EnvVariable
 } from './api';
+import { cleanupSource, downloadSource, prepareSourceFiles } from './api/source';
 import { authenticate, type AuthResult } from './auth';
 import { askForDomain, collectConfig, type SetupConfig } from './config';
 import {
-  clearScreen,
-  hideProgress,
-  pauseBeforeNext,
-  showError,
-  showInfo,
-  showProgress,
-  showStepHeader,
-  showSuccess,
+    clearScreen,
+    hideProgress,
+    pauseBeforeNext,
+    showError,
+    showInfo,
+    showProgress,
+    showStepHeader,
+    showSuccess,
 } from './ui/progress';
 
 /**
@@ -41,7 +41,7 @@ export const InstallSteps = {
 } as const;
 
 export interface OrchestratorOptions {
-  sourceDir: string;
+  // GitHub에서 자동으로 소스를 다운로드하므로 옵션 필요 없음
 }
 
 export interface OrchestratorResult {
@@ -55,15 +55,15 @@ export interface OrchestratorResult {
  * 설치 오케스트레이터 클래스
  */
 export class Orchestrator {
-  private options: OrchestratorOptions;
   private authResult: AuthResult | null = null;
   private config: SetupConfig | null = null;
   private projectId: string | null = null;
   private projectName: string | null = null;
   private domainName: string | null = null;
+  private sourceDir: string | null = null;
 
-  constructor(options: OrchestratorOptions) {
-    this.options = options;
+  constructor() {
+    // GitHub에서 자동으로 소스를 다운로드
   }
 
   /**
@@ -251,11 +251,15 @@ export class Orchestrator {
 
     showStepHeader(InstallSteps.DEPLOY, 'Vercel 배포');
 
+    // GitHub에서 소스 다운로드
+    showProgress(InstallSteps.DEPLOY, 'GitHub에서 소스 다운로드 중...');
+    this.sourceDir = await downloadSource((message) => {
+      showProgress(InstallSteps.DEPLOY, message);
+    });
+
     // 파일 준비
     showProgress(InstallSteps.DEPLOY, '파일 준비 중...');
-    
-    // 모노레포 구조이므로 전체 소스를 업로드해야 의존성(packages/*)을 해결할 수 있음
-    const files = await prepareFiles(this.options.sourceDir, (current, total) => {
+    const files = await prepareSourceFiles(this.sourceDir, (current, total) => {
       showProgress(InstallSteps.DEPLOY, `파일 준비 중... (${current}/${total})`);
     });
 
@@ -288,6 +292,11 @@ export class Orchestrator {
       };
       showProgress(InstallSteps.DEPLOY, statusMap[status] || status);
     });
+
+    // 임시 폴더 정리
+    if (this.sourceDir) {
+      await cleanupSource(this.sourceDir);
+    }
 
     showSuccess(InstallSteps.DEPLOY, '배포 완료!');
   }
