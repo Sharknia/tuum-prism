@@ -8,6 +8,7 @@ import kleur from 'kleur';
 import {
     createDeployment,
     createProject,
+    deleteProject,
     initClient,
     setEnvVariables,
     uploadFiles,
@@ -108,6 +109,17 @@ export class Orchestrator {
       const errorMessage = error instanceof Error ? error.message : String(error);
       hideProgress();
       showError('Error', errorMessage);
+
+      // 배포 실패 시 생성된 프로젝트 삭제
+      if (this.projectId) {
+        try {
+          showInfo('프로젝트 정리 중...');
+          await deleteProject(this.projectId);
+          showInfo('실패한 프로젝트가 삭제되었습니다.');
+        } catch {
+          // 삭제 실패 시 무시
+        }
+      }
 
       return {
         success: false,

@@ -218,7 +218,10 @@ export async function createDeployment(
       target: options.target || 'production',
       projectSettings: options.projectSettings || {
         framework: 'nextjs',
-        rootDirectory: 'apps/blog',
+        // monorepo: 루트에서 전체 설치 후 apps/blog만 빌드
+        installCommand: 'pnpm install --shamefully-hoist',
+        buildCommand: 'pnpm --filter @tuum/blog build',
+        outputDirectory: 'apps/blog/.next',
       },
     }),
   });
