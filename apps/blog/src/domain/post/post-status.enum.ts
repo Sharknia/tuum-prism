@@ -2,6 +2,7 @@ export const PostStatus = {
   Writing: 'Writing',
   Ready: 'Ready',
   Updated: 'Updated',
+  About: 'About',
   ToBeDeleted: 'ToBeDeleted',
   Deleted: 'Deleted',
   Error: 'Error',

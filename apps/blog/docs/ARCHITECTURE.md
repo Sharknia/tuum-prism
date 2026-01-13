@@ -9,6 +9,8 @@
 ```
 src/
 ├── app/                    # Next.js App Router
+│   ├── about/              # About 페이지
+│   │   └── page.tsx        # RSC (Server Component)
 │   ├── blog/[id]/          # 포스트 상세 페이지
 │   │   ├── page.tsx        # RSC (Server Component)
 │   │   ├── not-found.tsx   # 404 페이지
@@ -117,6 +119,7 @@ Next.js ISR(Incremental Static Regeneration)과 `unstable_cache`를 활용하여
 | ------------- | ----------------------------------- | ------ | -------------------------------- |
 | 메인 페이지   | `app/page.tsx`                      | 3600초 | 새 글 빈도 (며칠 단위) 대비 적절 |
 | 블로그 상세   | `app/blog/[id]/page.tsx`            | 3600초 | 본문 수정 빈도 낮음              |
+| About 페이지  | `app/about/page.tsx`                | 3600초 | 정적 콘텐츠, 수정 빈도 낮음      |
 | 시리즈 리스트 | `app/(main)/series/page.tsx`        | 3600초 | 시리즈 추가 빈도 낮음            |
 | 시리즈 상세   | `app/(main)/series/[slug]/page.tsx` | 3600초 | 메인과 통일                      |
 | 사이트맵      | `app/sitemap.ts`                    | 3600초 | SEO용, 실시간성 불필요           |
@@ -125,9 +128,10 @@ Next.js ISR(Incremental Static Regeneration)과 `unstable_cache`를 활용하여
 
 `lib/cache.ts`에서 메타데이터 캐싱을 관리합니다.
 
-| 데이터                        | 설정값 | 용도            |
-| ----------------------------- | ------ | --------------- |
-| 메타데이터 (태그/시리즈 집계) | 3600초 | 사이드바 표시용 |
+| 데이터                        | 설정값 | 용도               |
+| ----------------------------- | ------ | ------------------ |
+| 메타데이터 (태그/시리즈 집계) | 3600초 | 사이드바 표시용    |
+| About 포스트 존재 여부        | 3600초 | 헤더 조건부 렌더링 |
 
 ### 서버 사이드 필터링
 

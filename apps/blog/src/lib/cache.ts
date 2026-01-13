@@ -88,3 +88,18 @@ export const getCachedSeries = unstable_cache(
     tags: ['blog'],
   }
 );
+
+/**
+ * About 포스트 존재 여부 캐싱 (헤더 조건부 렌더링용)
+ */
+export const getCachedHasAboutPost = unstable_cache(
+  async (): Promise<boolean> => {
+    const aboutPost = await postRepository.getAboutPost();
+    return aboutPost !== null;
+  },
+  ['has-about-post'],
+  {
+    revalidate: 3600, // 1시간 캐시 (기존 전략과 동일)
+    tags: ['blog'],
+  }
+);

@@ -111,4 +111,14 @@ export interface PostRepository {
     id: string,
     date: Date
   ): Promise<{ prev: Post | null; next: Post | null }>;
+
+  /**
+   * About 태그가 있는 최신 Published 포스트 조회
+   * - 태그 비교: 소문자 + trim 변환 (대소문자 무관)
+   * - 상태: Updated만 대상
+   * - 정렬: date 내림차순 (최신 우선)
+   *
+   * @returns About 포스트 또는 null (없는 경우)
+   */
+  getAboutPost(): Promise<Post | null>;
 }

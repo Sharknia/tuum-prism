@@ -1,6 +1,7 @@
 // import { SearchBar, SeriesDropdown } from '@/components/filter';
 import { SearchBar } from '@/components/filter';
 import { siteConfig } from '@/config/site.config';
+import { getCachedHasAboutPost } from '@/lib/cache';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { ThemeToggle } from './ThemeToggle';
@@ -9,7 +10,9 @@ import { ThemeToggle } from './ThemeToggle';
 //   series?: { name: string; count: number }[];
 // }
 
-export function Header() {
+export async function Header() {
+  const hasAbout = await getCachedHasAboutPost();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-(--border) bg-(--background)/80 backdrop-blur-sm font-header">
       <div className="container-blog flex h-14 items-center justify-between">
@@ -58,6 +61,37 @@ export function Header() {
               Series
             </span>
           </Link>
+
+          {/* About Link - 조건부 */}
+          {hasAbout && (
+            <Link
+              href="/about"
+              className="p-2 md:px-3 md:py-1.5 rounded-lg hover:bg-(--surface) transition-colors active:scale-95"
+              aria-label="About"
+              title="About"
+            >
+              {/* Mobile: User Icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 md:hidden"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                />
+              </svg>
+              {/* Desktop: Text */}
+              <span className="hidden md:inline font-[family-name:var(--font-source-code-pro)] text-sm font-medium">
+                About
+              </span>
+            </Link>
+          )}
 
           {/* Theme Toggle */}
           <ThemeToggle />

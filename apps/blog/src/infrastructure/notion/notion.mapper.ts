@@ -78,6 +78,7 @@ function mapStatus(statusName: string | null): PostStatus {
     Writing: PostStatusEnum.Writing,
     Ready: PostStatusEnum.Ready,
     Updated: PostStatusEnum.Updated,
+    About: PostStatusEnum.About,
     ToBeDeleted: PostStatusEnum.ToBeDeleted,
     Deleted: PostStatusEnum.Deleted,
     Error: PostStatusEnum.Error,

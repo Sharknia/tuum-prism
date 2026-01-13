@@ -483,4 +483,29 @@ export class NotionPostRepository implements PostRepository {
       return { prev: null, next: null };
     }
   }
+
+  async getAboutPost(): Promise<Post | null> {
+    try {
+      const dataSourceId = await this.getDataSourceId();
+
+      const response = await this.notion.dataSources.query({
+        data_source_id: dataSourceId,
+        page_size: 1, // 최신 1개만 조회하면 됨 (상태 기반이라 명확)
+        filter: {
+          property: '상태',
+          select: { equals: PostStatus.About },
+        },
+        sorts: [{ property: 'date', direction: 'descending' }],
+      });
+
+      if (response.results.length > 0 && isFullPage(response.results[0])) {
+        return mapNotionPageToPost(response.results[0]);
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Failed to get about post:', error);
+      return null;
+    }
+  }
 }
