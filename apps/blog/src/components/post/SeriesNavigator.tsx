@@ -20,20 +20,63 @@ export function SeriesNavigator({
   const mobileNavId = useId();
   const desktopNavId = useId();
 
-  // 현재 포스트의 인덱스 찾기 (1-based)
-  const currentIndex = posts.findIndex((p) => p.id === currentPostId) + 1;
+  // 현재 포스트의 인덱스 찾기 (0-based for calculation, 1-based for display)
+  const currentIdx = posts.findIndex((p) => p.id === currentPostId);
+  const currentIndex = currentIdx + 1;
   const totalCount = posts.length;
+
+  // 컨텍스트 윈도우 계산 (현재 글 ±2, 총 5개 표시)
+  const WINDOW_SIZE = 5;
+  const CONTEXT_RADIUS = 2;
+
+  const calculateWindow = () => {
+    if (totalCount <= WINDOW_SIZE + 1) {
+      return { start: 0, end: totalCount, showBefore: false, showAfter: false };
+    }
+
+    let start = currentIdx - CONTEXT_RADIUS;
+    let end = currentIdx + CONTEXT_RADIUS + 1;
+
+    if (start < 0) {
+      start = 0;
+      end = WINDOW_SIZE;
+    } else if (end > totalCount) {
+      end = totalCount;
+      start = totalCount - WINDOW_SIZE;
+    }
+
+    return {
+      start,
+      end,
+      showBefore: start > 0,
+      showAfter: end < totalCount,
+    };
+  };
+
+  const { start, end, showBefore, showAfter } = calculateWindow();
+  const visiblePosts = posts.slice(start, end);
 
   if (posts.length === 0) {
     return null;
   }
+
+  const ellipsisLink = (
+    <Link
+      href={`/series/${encodeURIComponent(seriesName)}`}
+      className="block py-0.5 pl-3 text-sm hover:text-(--accent) transition-colors"
+      style={{ color: 'var(--muted)' }}
+      aria-label="전체 시리즈 보기"
+    >
+      ⋯
+    </Link>
+  );
 
   // 항목 스타일 - className과 style 분리해서 반환
   const getItemClassName = (isActive: boolean) =>
     `relative text-left w-full leading-snug py-1 pl-3 rounded-r
     before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-4 before:w-0.5
     before:rounded-full before:transition-colors
-    transition-colors
+    transition-colors active:bg-(--surface)
     ${isActive ? 'font-medium before:bg-(--accent) before:w-1' : 'before:bg-transparent hover:before:bg-(--border)'}`.trim();
 
   // 색상은 style로 직접 적용 (globals.css의 a 태그 스타일 덮어쓰기)
@@ -96,7 +139,7 @@ export function SeriesNavigator({
               <div className="mb-3">
                 <Link
                   href={`/?series=${encodeURIComponent(seriesName)}`}
-                  className="group inline-flex items-baseline gap-2 text-sm transition-colors hover:text-(--accent)"
+                  className="group inline-flex items-baseline gap-2 text-sm transition-colors hover:text-(--accent) active:scale-95"
                   style={{ color: 'var(--muted)' }}
                 >
                   <span className="font-medium group-hover:underline underline-offset-2">
@@ -109,13 +152,11 @@ export function SeriesNavigator({
               </div>
 
               {/* 챕터 목록 */}
-              <ul
-                id={desktopNavId}
-                className="text-sm max-h-[calc(100vh-20rem)] overflow-y-auto pr-2"
-                aria-label="챕터 목록"
-              >
-                {posts.map((post, index) => {
+              <ul id={desktopNavId} className="text-sm" aria-label="챕터 목록">
+                {showBefore && <li>{ellipsisLink}</li>}
+                {visiblePosts.map((post, index) => {
                   const isActive = post.id === currentPostId;
+                  const actualIndex = start + index;
                   return (
                     <li key={post.id}>
                       <Link
@@ -128,7 +169,7 @@ export function SeriesNavigator({
                       >
                         <span className="inline-flex items-center gap-2">
                           <span className="font-mono text-xs w-5 text-right shrink-0 opacity-60">
-                            {(index + 1).toString().padStart(2, '0')}
+                            {(actualIndex + 1).toString().padStart(2, '0')}
                           </span>
                           <span className="line-clamp-1">{post.title}</span>
                         </span>
@@ -136,6 +177,7 @@ export function SeriesNavigator({
                     </li>
                   );
                 })}
+                {showAfter && <li>{ellipsisLink}</li>}
               </ul>
             </>
           )}
@@ -192,9 +234,11 @@ export function SeriesNavigator({
             </div>
 
             {/* 챕터 목록 */}
-            <ul className="text-sm max-h-[50vh] overflow-y-auto">
-              {posts.map((post, index) => {
+            <ul className="text-sm">
+              {showBefore && <li>{ellipsisLink}</li>}
+              {visiblePosts.map((post, index) => {
                 const isActive = post.id === currentPostId;
+                const actualIndex = start + index;
                 return (
                   <li key={post.id}>
                     <Link
@@ -207,7 +251,7 @@ export function SeriesNavigator({
                     >
                       <span className="inline-flex items-center gap-2">
                         <span className="font-mono text-xs w-5 text-right shrink-0 opacity-60">
-                          {(index + 1).toString().padStart(2, '0')}
+                          {(actualIndex + 1).toString().padStart(2, '0')}
                         </span>
                         <span className="line-clamp-1">{post.title}</span>
                       </span>
@@ -215,6 +259,7 @@ export function SeriesNavigator({
                   </li>
                 );
               })}
+              {showAfter && <li>{ellipsisLink}</li>}
             </ul>
           </nav>
         )}

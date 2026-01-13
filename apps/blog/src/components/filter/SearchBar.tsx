@@ -69,7 +69,7 @@ export function SearchBar() {
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(true)}
-        className="p-2 md:px-3 md:py-1.5 rounded-lg hover:bg-(--surface) transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent)"
+        className="p-2 md:px-3 md:py-1.5 rounded-lg hover:bg-(--surface) transition-colors active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent)"
         aria-label="검색"
         title="검색"
       >
@@ -116,7 +116,7 @@ export function SearchBar() {
       <button
         type="button"
         onClick={handleClose}
-        className="p-2 rounded-lg hover:bg-(--surface) transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent)"
+        className="p-2 rounded-lg hover:bg-(--surface) transition-colors active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-(--accent)"
         aria-label="검색 닫기"
       >
         <svg

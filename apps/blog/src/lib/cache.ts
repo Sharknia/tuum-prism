@@ -68,7 +68,7 @@ export const getCachedMetadata = unstable_cache(
   },
   ['blog-metadata'],
   {
-    revalidate: 300, // 5분 캐시
+    revalidate: 3600, // 1시간 캐시
     tags: ['blog'],
   }
 );
@@ -83,7 +83,7 @@ export const getCachedSeries = unstable_cache(
   },
   ['blog-series'],
   {
-    revalidate: 300,
+    revalidate: 3600, // 1시간 캐시
     tags: ['blog'],
   }
 );

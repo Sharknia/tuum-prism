@@ -107,6 +107,11 @@ a[class*='bg-']:hover {
   color: inherit;
 }
 
+/* Tailwind v4: text-white 클래스가 있는 Link도 color 상속 */
+a:where([class*='text-white']) {
+  color: inherit;
+}
+
 /* ============================================
    Utility Classes
    ============================================ */

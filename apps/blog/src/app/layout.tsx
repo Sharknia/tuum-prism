@@ -2,6 +2,7 @@ import {
   Footer,
   Header,
   HeaderWrapper,
+  ProgressBar,
   QueryProvider,
   ScrollToTop,
   ThemeProvider,
@@ -78,8 +79,8 @@ export default function RootLayout({
         className={`${notoSansKr.variable} ${d2Coding.variable} ${sourceCodePro.variable} antialiased min-h-screen flex flex-col`}
       >
         <ThemeProvider>
+          <ProgressBar />
           <QueryProvider>
-            {/* HeaderWrapper fetches series data and renders Header */}
             <ScrollRestoration />
             <Suspense fallback={<Header />}>
               <HeaderWrapper />

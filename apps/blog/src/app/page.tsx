@@ -8,7 +8,7 @@ import { Suspense } from 'react';
 
 const postRepository = new NotionPostRepository();
 
-export const revalidate = 60; // ISR: 1분마다 갱신
+export const revalidate = 3600; // ISR: 1시간마다 갱신
 
 interface HomeProps {
   searchParams: Promise<{ tag?: string; series?: string; q?: string }>;

@@ -9,7 +9,7 @@ interface SeriesCardProps {
 
 export function SeriesCard({ series }: SeriesCardProps) {
   return (
-    <article className="group relative grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-6 p-6 rounded-2xl bg-(--card-bg) border border-(--border) hover:border-(--accent) transition-all overflow-hidden">
+    <article className="group relative grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-6 p-6 rounded-2xl bg-(--card-bg) border border-(--border) hover:border-(--accent) transition-all overflow-hidden active:scale-[0.99]">
       {/* 장식용 Spine (책등) 효과 - Compact에 맞춰 높이 조정 */}
       <div className="absolute left-0 top-6 bottom-6 w-1 bg-(--border) rounded-r-md opacity-50 group-hover:bg-(--accent) group-hover:opacity-100 transition-all" />
 
@@ -47,7 +47,7 @@ export function SeriesCard({ series }: SeriesCardProps) {
           </span>
           <Link
             href={`/series/${encodeURIComponent(series.name)}`}
-            className="text-xs font-bold hover:text-(--accent) flex items-center gap-1 transition-colors"
+            className="text-xs font-bold hover:text-(--accent) flex items-center gap-1 transition-colors active:scale-95"
             style={{ color: 'var(--muted)' }}
           >
             전체보기
@@ -76,7 +76,7 @@ export function SeriesCard({ series }: SeriesCardProps) {
               <li key={post.id} className="group/item">
                 <Link
                   href={`/blog/${post.id}`}
-                  className="flex items-baseline gap-3 text-sm hover:text-foreground transition-colors"
+                  className="flex items-baseline gap-3 text-sm hover:text-foreground transition-colors active:scale-[0.98]"
                   style={{ color: 'var(--muted)' }}
                 >
                   <span

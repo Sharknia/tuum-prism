@@ -16,7 +16,7 @@ export function Header() {
         {/* Logo / Home */}
         <Link
           href="/"
-          className="flex items-center gap-2 font-bold text-lg transition-colors"
+          className="flex items-center gap-2 font-bold text-lg transition-colors active:scale-95"
         >
           <span className="font-[family-name:var(--font-source-code-pro)] text-foreground text-xl">
             {siteConfig.blog.title}
@@ -33,7 +33,7 @@ export function Header() {
           {/* Series Link */}
           <Link
             href="/series"
-            className="p-2 md:px-3 md:py-1.5 rounded-lg hover:bg-(--surface) transition-colors"
+            className="p-2 md:px-3 md:py-1.5 rounded-lg hover:bg-(--surface) transition-colors active:scale-95"
             aria-label="시리즈"
             title="시리즈"
           >

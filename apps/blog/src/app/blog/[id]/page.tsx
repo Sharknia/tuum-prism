@@ -25,7 +25,7 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export const revalidate = 3600; // 상세 페이지는 1시간 캐시 (본문 자주 안 바뀜)
+export const revalidate = 3600; // ISR: 1시간마다 갱신
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { id } = await params;

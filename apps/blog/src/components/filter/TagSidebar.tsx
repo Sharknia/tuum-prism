@@ -1,28 +1,32 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 interface TagSidebarProps {
   tags: { name: string; count: number }[];
 }
 
 export function TagSidebar({ tags }: TagSidebarProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const selectedTag = searchParams.get('tag');
 
-  const handleTagClick = (tagName: string) => {
+  /**
+   * 태그 링크 URL 생성
+   * 이미 선택된 태그면 해제, 아니면 선택
+   */
+  const getTagHref = (tagName: string): string => {
     const params = new URLSearchParams(searchParams.toString());
 
     if (selectedTag === tagName) {
-      // 이미 선택된 태그 클릭 시 해제
+      // 이미 선택된 태그 → 해제
       params.delete('tag');
     } else {
       params.set('tag', tagName);
     }
 
     const queryString = params.toString();
-    router.push(queryString ? `/?${queryString}` : '/');
+    return queryString ? `/?${queryString}` : '/';
   };
 
   if (tags.length === 0) {
@@ -38,9 +42,9 @@ export function TagSidebar({ tags }: TagSidebarProps) {
         <ul className="flex flex-wrap gap-2">
           {tags.map(({ name, count }) => (
             <li key={name}>
-              <button
-                onClick={() => handleTagClick(name)}
-                className={`flex items-center px-2.5 py-1 rounded-md text-xs border transition-colors ${
+              <Link
+                href={getTagHref(name)}
+                className={`flex items-center px-2.5 py-1 rounded-md text-xs border transition-all active:scale-95 ${
                   selectedTag === name
                     ? 'bg-(--accent) text-white border-transparent font-medium'
                     : 'bg-(--surface) border-(--border) text-(--muted) hover:text-(--foreground) hover:border-(--accent)'
@@ -48,19 +52,19 @@ export function TagSidebar({ tags }: TagSidebarProps) {
               >
                 <span>#{name}</span>
                 <span className="ml-1.5 opacity-60">({count})</span>
-              </button>
+              </Link>
             </li>
           ))}
         </ul>
 
         {/* 필터 초기화 버튼 */}
         {selectedTag && (
-          <button
-            onClick={() => router.push('/')}
-            className="mt-4 text-xs text-(--muted) hover:text-(--accent) transition-colors"
+          <Link
+            href="/"
+            className="mt-4 inline-block text-xs text-(--muted) hover:text-(--accent) transition-colors active:scale-95"
           >
             필터 초기화
-          </button>
+          </Link>
         )}
       </div>
     </aside>

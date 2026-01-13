@@ -6,8 +6,8 @@ import mermaid from 'mermaid';
 import { useEffect, useRef, useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import {
-    ghcolors,
-    vscDarkPlus,
+  ghcolors,
+  vscDarkPlus,
 } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 /**

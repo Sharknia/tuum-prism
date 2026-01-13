@@ -9,7 +9,7 @@ export function PostCard({ post }: PostCardProps) {
   return (
     <Link
       href={`/blog/${post.id}`}
-      className="block group p-6 rounded-xl border border-(--border) hover:border-(--accent) hover:shadow-md transition-all bg-(--card-bg) shadow-sm"
+      className="block group p-6 rounded-xl border border-(--border) hover:border-(--accent) hover:shadow-md transition-all bg-(--card-bg) shadow-sm active:scale-[0.98] active:shadow-sm"
     >
       <article className="flex flex-col gap-1">
         {/* 헤더: 시리즈 및 날짜 */}

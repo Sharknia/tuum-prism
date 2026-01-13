@@ -28,7 +28,7 @@
 - [x] `@tuum/refract-notion` 자체 개발
 - [ ] 게시글 목록 페이지
 - [ ] 게시글 상세 페이지
-- [ ] ISR (Incremental Static Regeneration) 적용
+- [x] ISR (Incremental Static Regeneration) 적용
 - [ ] 커스텀 도메인 설정 가이드
 
 ---

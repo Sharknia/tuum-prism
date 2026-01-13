@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 
 const postRepository = new NotionPostRepository();
 
-export const revalidate = 60;
+export const revalidate = 3600; // ISR: 1시간마다 갱신
 
 interface SeriesDetailProps {
   params: Promise<{ slug: string }>;

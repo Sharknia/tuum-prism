@@ -3,8 +3,7 @@ import type { MetadataRoute } from 'next';
 
 const postRepository = new NotionPostRepository();
 
-// ISR: 1시간마다 재생성
-export const revalidate = 3600;
+export const revalidate = 3600; // ISR: 1시간마다 갱신
 
 /**
  * 동적 사이트맵 생성
