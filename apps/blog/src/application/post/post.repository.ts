@@ -38,6 +38,14 @@ export interface SeriesStats {
 }
 
 /**
+ * 메타데이터 집계용 최소 정보
+ */
+export interface PostMetadataForAggregation {
+  tags: string[];
+  series: string | null;
+}
+
+/**
  * Post Repository 인터페이스
  * 클린 아키텍처 Port
  *
@@ -70,6 +78,12 @@ export interface PostRepository {
    * 페이지네이션을 내부적으로 처리하여 모든 포스트의 ID와 수정일 반환
    */
   getAllPublishedPaths(): Promise<PostPath[]>;
+
+  /**
+   * 전체 Published 포스트의 메타데이터 조회 (태그/시리즈 집계용)
+   * 페이지네이션을 내부적으로 처리하여 모든 포스트의 태그/시리즈 반환
+   */
+  getAllPublishedMetadata(): Promise<PostMetadataForAggregation[]>;
 
   /**
    * 포스트 본문 조회 (Notion Block 데이터)

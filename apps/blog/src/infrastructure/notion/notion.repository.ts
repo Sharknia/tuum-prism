@@ -1,6 +1,7 @@
 import type {
   FindPostsOptions,
   PaginatedResult,
+  PostMetadataForAggregation,
   PostPath,
   PostRepository,
   SeriesStats,
@@ -286,6 +287,50 @@ export class NotionPostRepository implements PostRepository {
       return paths;
     } catch (error) {
       console.error('Failed to get all published paths:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 전체 Published 포스트의 메타데이터 조회 (태그/시리즈 집계용)
+   * 페이지네이션을 내부적으로 처리
+   */
+  async getAllPublishedMetadata(): Promise<PostMetadataForAggregation[]> {
+    const metadata: PostMetadataForAggregation[] = [];
+    let cursor: string | undefined;
+
+    try {
+      const dataSourceId = await this.getDataSourceId();
+
+      do {
+        const response = await this.notion.dataSources.query({
+          data_source_id: dataSourceId,
+          page_size: 100,
+          start_cursor: cursor,
+          filter: {
+            property: '상태',
+            select: { equals: PostStatus.Updated },
+          },
+        });
+
+        for (const page of response.results) {
+          if (isFullPage(page)) {
+            const post = mapNotionPageToPost(page);
+            metadata.push({
+              tags: post.tags,
+              series: post.series,
+            });
+          }
+        }
+
+        cursor = response.has_more
+          ? (response.next_cursor ?? undefined)
+          : undefined;
+      } while (cursor);
+
+      return metadata;
+    } catch (error) {
+      console.error('Failed to get all published metadata:', error);
       return [];
     }
   }

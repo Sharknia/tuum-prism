@@ -58,11 +58,12 @@ function aggregateSeries(posts: { series: string | null }[]): SeriesCount[] {
  */
 export const getCachedMetadata = unstable_cache(
   async (): Promise<BlogMetadata> => {
-    const { results: posts } = await postRepository.findPosts({ limit: 100 });
+    // 전체 포스트의 메타데이터 조회 (페이지네이션 처리됨)
+    const allMetadata = await postRepository.getAllPublishedMetadata();
 
     // 단일 순회로 태그와 시리즈 모두 집계
-    const tags = aggregateTags(posts);
-    const series = aggregateSeries(posts);
+    const tags = aggregateTags(allMetadata);
+    const series = aggregateSeries(allMetadata);
 
     return { tags, series };
   },
