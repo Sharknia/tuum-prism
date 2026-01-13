@@ -46,8 +46,8 @@ export function TagSidebar({ tags }: TagSidebarProps) {
                 href={getTagHref(name)}
                 className={`flex items-center px-2.5 py-1 rounded-md text-xs border transition-all active:scale-95 ${
                   selectedTag === name
-                    ? 'bg-(--accent) text-white border-transparent font-medium'
-                    : 'bg-(--surface) border-(--border) text-(--muted) hover:text-(--foreground) hover:border-(--accent)'
+                    ? 'bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)] font-medium'
+                    : 'bg-[var(--surface)] border-[var(--border)] text-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--accent)]'
                 }`}
               >
                 <span>#{name}</span>

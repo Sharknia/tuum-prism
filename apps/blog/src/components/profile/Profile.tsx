@@ -24,6 +24,7 @@ export function Profile({ className, variant = 'main-header' }: ProfileProps) {
             href={social.github}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="GitHub 프로필"
             className="!text-[var(--muted)] hover:!text-[var(--foreground)] transition-colors"
           >
             <SocialIcons.github className="w-5 h-5 fill-current" />
@@ -34,6 +35,7 @@ export function Profile({ className, variant = 'main-header' }: ProfileProps) {
             href={social.linkedin}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="LinkedIn 프로필"
             className="!text-[var(--muted)] hover:!text-[var(--foreground)] transition-colors"
           >
             <SocialIcons.linkedin className="w-5 h-5 fill-current" />
@@ -44,6 +46,7 @@ export function Profile({ className, variant = 'main-header' }: ProfileProps) {
             href={social.x}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="X (Twitter) 프로필"
             className="!text-[var(--muted)] hover:!text-[var(--foreground)] transition-colors"
           >
             <SocialIcons.twitter className="w-5 h-5 fill-current" />
@@ -54,6 +57,7 @@ export function Profile({ className, variant = 'main-header' }: ProfileProps) {
             href={social.threads}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="Threads 프로필"
             className="!text-[var(--muted)] hover:!text-[var(--foreground)] transition-colors"
           >
             <SocialIcons.threads className="w-5 h-5 fill-current" />
@@ -62,6 +66,7 @@ export function Profile({ className, variant = 'main-header' }: ProfileProps) {
         {social.email && (
           <Link
             href={`mailto:${social.email}`}
+            aria-label="이메일 보내기"
             className="!text-[var(--muted)] hover:!text-[var(--foreground)] transition-colors"
           >
             <SocialIcons.email className="w-5 h-5 fill-current" />

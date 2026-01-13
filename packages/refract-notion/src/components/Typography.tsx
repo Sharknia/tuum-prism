@@ -1,16 +1,16 @@
 import type {
-    ColumnBlockObjectResponse,
-    ColumnListBlockObjectResponse,
-    Heading1BlockObjectResponse,
-    Heading2BlockObjectResponse,
-    Heading3BlockObjectResponse,
-    ParagraphBlockObjectResponse,
-    QuoteBlockObjectResponse
-} from '@notionhq/client/build/src/api-endpoints';
-import React from 'react';
-import { mapColorToClass } from '../utils/color-mapper';
-import { getPlainText, slugify } from '../utils/heading-utils';
-import { RichText } from './RichText';
+  ColumnBlockObjectResponse,
+  ColumnListBlockObjectResponse,
+  Heading1BlockObjectResponse,
+  Heading2BlockObjectResponse,
+  Heading3BlockObjectResponse,
+  ParagraphBlockObjectResponse,
+  QuoteBlockObjectResponse,
+} from "@notionhq/client/build/src/api-endpoints";
+import React from "react";
+import { mapColorToClass } from "../utils/color-mapper";
+import { getPlainText, slugify } from "../utils/heading-utils";
+import { RichText } from "./RichText";
 
 // Common props for blocks that have children (recursive)
 export type BlockProps<T> = {
@@ -21,7 +21,11 @@ export type BlockProps<T> = {
 
 // --- Paragraph ---
 // --- Paragraph ---
-export function Paragraph({ block, children, mapPageUrl }: BlockProps<ParagraphBlockObjectResponse>) {
+export function Paragraph({
+  block,
+  children,
+  mapPageUrl,
+}: BlockProps<ParagraphBlockObjectResponse>) {
   const { color, rich_text } = block.paragraph;
   const colorClass = mapColorToClass(color);
 
@@ -36,7 +40,11 @@ export function Paragraph({ block, children, mapPageUrl }: BlockProps<ParagraphB
 // --- Headings ---
 // Heading blocks in Notion cannot have children content in the API structure usually (except Toggle Headings),
 // but if they do (toggleable headings), we render them.
-export function Heading1({ block, children, mapPageUrl }: BlockProps<Heading1BlockObjectResponse>) {
+export function Heading1({
+  block,
+  children,
+  mapPageUrl,
+}: BlockProps<Heading1BlockObjectResponse>) {
   const { color, rich_text, is_toggleable } = block.heading_1;
   const colorClass = mapColorToClass(color);
   const plainText = getPlainText(rich_text);
@@ -44,13 +52,19 @@ export function Heading1({ block, children, mapPageUrl }: BlockProps<Heading1Blo
 
   return (
     <div id={block.id} className={`notion-block notion-h1 ${colorClass}`}>
-      <h1 id={headingId} style={{ scrollMarginTop: '80px' }}><RichText richText={rich_text} mapPageUrl={mapPageUrl} /></h1>
+      <h1 id={headingId} style={{ scrollMarginTop: "80px" }}>
+        <RichText richText={rich_text} mapPageUrl={mapPageUrl} />
+      </h1>
       {is_toggleable && children}
     </div>
   );
 }
 
-export function Heading2({ block, children, mapPageUrl }: BlockProps<Heading2BlockObjectResponse>) {
+export function Heading2({
+  block,
+  children,
+  mapPageUrl,
+}: BlockProps<Heading2BlockObjectResponse>) {
   const { color, rich_text, is_toggleable } = block.heading_2;
   const colorClass = mapColorToClass(color);
   const plainText = getPlainText(rich_text);
@@ -58,13 +72,19 @@ export function Heading2({ block, children, mapPageUrl }: BlockProps<Heading2Blo
 
   return (
     <div id={block.id} className={`notion-block notion-h2 ${colorClass}`}>
-      <h2 id={headingId} style={{ scrollMarginTop: '80px' }}><RichText richText={rich_text} mapPageUrl={mapPageUrl} /></h2>
+      <h2 id={headingId} style={{ scrollMarginTop: "80px" }}>
+        <RichText richText={rich_text} mapPageUrl={mapPageUrl} />
+      </h2>
       {is_toggleable && children}
     </div>
   );
 }
 
-export function Heading3({ block, children, mapPageUrl }: BlockProps<Heading3BlockObjectResponse>) {
+export function Heading3({
+  block,
+  children,
+  mapPageUrl,
+}: BlockProps<Heading3BlockObjectResponse>) {
   const { color, rich_text, is_toggleable } = block.heading_3;
   const colorClass = mapColorToClass(color);
   const plainText = getPlainText(rich_text);
@@ -72,19 +92,28 @@ export function Heading3({ block, children, mapPageUrl }: BlockProps<Heading3Blo
 
   return (
     <div id={block.id} className={`notion-block notion-h3 ${colorClass}`}>
-      <h3 id={headingId} style={{ scrollMarginTop: '80px' }}><RichText richText={rich_text} mapPageUrl={mapPageUrl} /></h3>
+      <h3 id={headingId} style={{ scrollMarginTop: "80px" }}>
+        <RichText richText={rich_text} mapPageUrl={mapPageUrl} />
+      </h3>
       {is_toggleable && children}
     </div>
   );
 }
 
 // --- Quote ---
-export function Quote({ block, children, mapPageUrl }: BlockProps<QuoteBlockObjectResponse>) {
+export function Quote({
+  block,
+  children,
+  mapPageUrl,
+}: BlockProps<QuoteBlockObjectResponse>) {
   const { color, rich_text } = block.quote;
   const colorClass = mapColorToClass(color);
 
   return (
-    <blockquote id={block.id} className={`notion-block notion-quote ${colorClass}`}>
+    <blockquote
+      id={block.id}
+      className={`notion-block notion-quote ${colorClass}`}
+    >
       <div className="notion-quote-content">
         <RichText richText={rich_text} mapPageUrl={mapPageUrl} />
       </div>
@@ -94,14 +123,24 @@ export function Quote({ block, children, mapPageUrl }: BlockProps<QuoteBlockObje
 }
 
 // --- List Items ---
-import { BulletedListItemBlockObjectResponse, NumberedListItemBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+import {
+  BulletedListItemBlockObjectResponse,
+  NumberedListItemBlockObjectResponse,
+} from "@notionhq/client/build/src/api-endpoints";
 
-export function BulletedListItem({ block, children, mapPageUrl }: BlockProps<BulletedListItemBlockObjectResponse>) {
+export function BulletedListItem({
+  block,
+  children,
+  mapPageUrl,
+}: BlockProps<BulletedListItemBlockObjectResponse>) {
   const { color, rich_text } = block.bulleted_list_item;
   const colorClass = mapColorToClass(color);
 
   return (
-    <li id={block.id} className={`notion-block notion-list-item notion-bulleted-list-item ${colorClass}`}>
+    <li
+      id={block.id}
+      className={`notion-block notion-list-item notion-bulleted-list-item ${colorClass}`}
+    >
       <div className="notion-list-item-content">
         <RichText richText={rich_text} mapPageUrl={mapPageUrl} />
       </div>
@@ -110,12 +149,19 @@ export function BulletedListItem({ block, children, mapPageUrl }: BlockProps<Bul
   );
 }
 
-export function NumberedListItem({ block, children, mapPageUrl }: BlockProps<NumberedListItemBlockObjectResponse>) {
+export function NumberedListItem({
+  block,
+  children,
+  mapPageUrl,
+}: BlockProps<NumberedListItemBlockObjectResponse>) {
   const { color, rich_text } = block.numbered_list_item;
   const colorClass = mapColorToClass(color);
 
   return (
-    <li id={block.id} className={`notion-block notion-list-item notion-numbered-list-item ${colorClass}`}>
+    <li
+      id={block.id}
+      className={`notion-block notion-list-item notion-numbered-list-item ${colorClass}`}
+    >
       <div className="notion-list-item-content">
         <RichText richText={rich_text} mapPageUrl={mapPageUrl} />
       </div>
@@ -125,7 +171,12 @@ export function NumberedListItem({ block, children, mapPageUrl }: BlockProps<Num
 }
 
 // --- Divider ---
-import { BookmarkBlockObjectResponse, CalloutBlockObjectResponse, DividerBlockObjectResponse, ImageBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+import {
+  BookmarkBlockObjectResponse,
+  CalloutBlockObjectResponse,
+  DividerBlockObjectResponse,
+  ImageBlockObjectResponse,
+} from "@notionhq/client/build/src/api-endpoints";
 
 export function Divider({ block }: { block: DividerBlockObjectResponse }) {
   return <hr id={block.id} className="notion-block notion-divider" />;
@@ -140,53 +191,82 @@ export interface ImageProps {
 }
 
 // Default Image component (can be overridden via IoC)
-export function DefaultImage({ src, alt, caption, className, mapPageUrl }: ImageProps & { mapPageUrl?: (href: string) => string }) {
+export function DefaultImage({
+  src,
+  alt,
+  caption,
+  className,
+  mapPageUrl,
+}: ImageProps & { mapPageUrl?: (href: string) => string }) {
   return (
-    <figure className={`notion-block notion-image ${className ?? ''}`}>
+    <figure className={`notion-block notion-image ${className ?? ""}`}>
       <img src={src} alt={alt} loading="lazy" />
       {caption && <figcaption className="notion-caption">{caption}</figcaption>}
     </figure>
   );
 }
 
-export function ImageBlock({ 
-  block, 
+export function ImageBlock({
+  block,
   ImageComponent = DefaultImage,
-  mapPageUrl
-}: { 
-  block: ImageBlockObjectResponse; 
+  mapPageUrl,
+}: {
+  block: ImageBlockObjectResponse;
   ImageComponent?: React.ComponentType<ImageProps>;
   mapPageUrl?: (href: string) => string;
 }) {
   const { image } = block;
-  const src = image.type === 'external' ? image.external.url : image.file.url;
-  const caption = image.caption && image.caption.length > 0 
-    ? <RichText richText={image.caption} mapPageUrl={mapPageUrl} /> 
-    : undefined;
+  const src = image.type === "external" ? image.external.url : image.file.url;
+
+  const captionText =
+    image.caption && image.caption.length > 0
+      ? image.caption.map((t) => t.plain_text).join("")
+      : "";
+
+  const captionElement =
+    image.caption && image.caption.length > 0 ? (
+      <RichText richText={image.caption} mapPageUrl={mapPageUrl} />
+    ) : undefined;
 
   return (
-    <ImageComponent 
-      src={src} 
-      alt={caption ? '' : 'Image'} 
-      caption={caption} 
+    <ImageComponent
+      src={src}
+      alt={captionText || "Image"}
+      caption={captionElement}
     />
   );
 }
 
 // --- Callout ---
-export function Callout({ block, children, mapPageUrl }: BlockProps<CalloutBlockObjectResponse>) {
+export function Callout({
+  block,
+  children,
+  mapPageUrl,
+}: BlockProps<CalloutBlockObjectResponse>) {
   const { icon, color, rich_text } = block.callout;
   const colorClass = mapColorToClass(color);
 
   // Render icon
   let iconElement: React.ReactNode = null;
   if (icon) {
-    if (icon.type === 'emoji') {
+    if (icon.type === "emoji") {
       iconElement = <span className="notion-callout-icon">{icon.emoji}</span>;
-    } else if (icon.type === 'external') {
-      iconElement = <img src={icon.external.url} alt="" className="notion-callout-icon notion-callout-icon-image" />;
-    } else if (icon.type === 'file') {
-      iconElement = <img src={icon.file.url} alt="" className="notion-callout-icon notion-callout-icon-image" />;
+    } else if (icon.type === "external") {
+      iconElement = (
+        <img
+          src={icon.external.url}
+          alt=""
+          className="notion-callout-icon notion-callout-icon-image"
+        />
+      );
+    } else if (icon.type === "file") {
+      iconElement = (
+        <img
+          src={icon.file.url}
+          alt=""
+          className="notion-callout-icon notion-callout-icon-image"
+        />
+      );
     }
   }
 
@@ -202,12 +282,23 @@ export function Callout({ block, children, mapPageUrl }: BlockProps<CalloutBlock
 }
 
 // --- Bookmark ---
-export function Bookmark({ block, mapPageUrl }: { block: BookmarkBlockObjectResponse, mapPageUrl?: (href: string) => string }) {
+export function Bookmark({
+  block,
+  mapPageUrl,
+}: {
+  block: BookmarkBlockObjectResponse;
+  mapPageUrl?: (href: string) => string;
+}) {
   const { url, caption } = block.bookmark;
 
   return (
     <div id={block.id} className="notion-block notion-bookmark">
-      <a href={url} target="_blank" rel="noopener noreferrer" className="notion-bookmark-link">
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="notion-bookmark-link"
+      >
         {url}
       </a>
       {caption && caption.length > 0 && (
@@ -220,14 +311,26 @@ export function Bookmark({ block, mapPageUrl }: { block: BookmarkBlockObjectResp
 }
 
 // --- Toggle ---
-import { CodeBlockObjectResponse, TableBlockObjectResponse, TableRowBlockObjectResponse, ToggleBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+import {
+  CodeBlockObjectResponse,
+  TableBlockObjectResponse,
+  TableRowBlockObjectResponse,
+  ToggleBlockObjectResponse,
+} from "@notionhq/client/build/src/api-endpoints";
 
-export function Toggle({ block, children, mapPageUrl }: BlockProps<ToggleBlockObjectResponse>) {
+export function Toggle({
+  block,
+  children,
+  mapPageUrl,
+}: BlockProps<ToggleBlockObjectResponse>) {
   const { rich_text, color } = block.toggle;
   const colorClass = mapColorToClass(color);
 
   return (
-    <details id={block.id} className={`notion-block notion-toggle ${colorClass}`}>
+    <details
+      id={block.id}
+      className={`notion-block notion-toggle ${colorClass}`}
+    >
       <summary className="notion-toggle-summary">
         <RichText richText={rich_text} mapPageUrl={mapPageUrl} />
       </summary>
@@ -245,9 +348,14 @@ export interface CodeBlockProps {
 }
 
 // Default CodeBlock component (Headless - no syntax highlighting)
-export function DefaultCodeBlock({ language, code, caption, className }: CodeBlockProps) {
+export function DefaultCodeBlock({
+  language,
+  code,
+  caption,
+  className,
+}: CodeBlockProps) {
   return (
-    <figure className={`notion-block notion-code-block ${className ?? ''}`}>
+    <figure className={`notion-block notion-code-block ${className ?? ""}`}>
       <pre>
         <code className={`language-${language}`}>{code}</code>
       </pre>
@@ -266,28 +374,36 @@ export function CodeBlock({
   mapPageUrl?: (href: string) => string;
 }) {
   const { language, rich_text, caption } = block.code;
-  const code = rich_text.map((t) => t.plain_text).join('');
-  const captionElement = caption && caption.length > 0 ? <RichText richText={caption} mapPageUrl={mapPageUrl} /> : undefined;
+  const code = rich_text.map((t) => t.plain_text).join("");
+  const captionElement =
+    caption && caption.length > 0 ? (
+      <RichText richText={caption} mapPageUrl={mapPageUrl} />
+    ) : undefined;
 
   return (
-    <CodeComponent
-      language={language}
-      code={code}
-      caption={captionElement}
-    />
+    <CodeComponent language={language} code={code} caption={captionElement} />
   );
 }
 
 // --- Table ---
-export function Table({ block, children }: BlockProps<TableBlockObjectResponse>) {
+export function Table({
+  block,
+  children,
+}: BlockProps<TableBlockObjectResponse>) {
   const { has_column_header, has_row_header } = block.table;
 
   return (
-    <div id={block.id} className="notion-block notion-table-wrapper" style={{ overflowX: 'auto', display: 'block' }}>
-      <table className="notion-table" data-has-column-header={has_column_header} data-has-row-header={has_row_header}>
-        <tbody>
-          {children}
-        </tbody>
+    <div
+      id={block.id}
+      className="notion-block notion-table-wrapper"
+      style={{ overflowX: "auto", display: "block" }}
+    >
+      <table
+        className="notion-table"
+        data-has-column-header={has_column_header}
+        data-has-row-header={has_row_header}
+      >
+        <tbody>{children}</tbody>
       </table>
     </div>
   );
@@ -309,8 +425,8 @@ export function TableRow({
   return (
     <tr className="notion-table-row">
       {cells.map((cell, index) => {
-        const isHeader = (isFirstRow) || (hasRowHeader && index === 0);
-        const Tag = isHeader ? 'th' : 'td';
+        const isHeader = isFirstRow || (hasRowHeader && index === 0);
+        const Tag = isHeader ? "th" : "td";
         return (
           <Tag key={index} className="notion-table-cell">
             <RichText richText={cell} mapPageUrl={mapPageUrl} />
@@ -322,14 +438,21 @@ export function TableRow({
 }
 
 // --- ToDo ---
-import { ToDoBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+import { ToDoBlockObjectResponse } from "@notionhq/client/build/src/api-endpoints";
 
-export function ToDo({ block, children, mapPageUrl }: BlockProps<ToDoBlockObjectResponse>) {
+export function ToDo({
+  block,
+  children,
+  mapPageUrl,
+}: BlockProps<ToDoBlockObjectResponse>) {
   const { rich_text, checked, color } = block.to_do;
   const colorClass = mapColorToClass(color);
 
   return (
-    <div id={block.id} className={`notion-block notion-to-do ${colorClass} ${checked ? 'notion-to-do-checked' : ''}`}>
+    <div
+      id={block.id}
+      className={`notion-block notion-to-do ${colorClass} ${checked ? "notion-to-do-checked" : ""}`}
+    >
       <div className="notion-to-do-label">
         <input
           type="checkbox"
@@ -347,7 +470,10 @@ export function ToDo({ block, children, mapPageUrl }: BlockProps<ToDoBlockObject
 }
 
 // --- Column List & Column ---
-export function ColumnList({ block, children }: BlockProps<ColumnListBlockObjectResponse>) {
+export function ColumnList({
+  block,
+  children,
+}: BlockProps<ColumnListBlockObjectResponse>) {
   return (
     <div id={block.id} className="notion-block notion-column-list">
       {children}
@@ -355,24 +481,27 @@ export function ColumnList({ block, children }: BlockProps<ColumnListBlockObject
   );
 }
 
-export function Column({ block, children }: BlockProps<ColumnBlockObjectResponse>) {
+export function Column({
+  block,
+  children,
+}: BlockProps<ColumnBlockObjectResponse>) {
   // Notion API might provide width_ratio (0-1).
   // If provided, we use it to calculate width percentage.
   // If not, we default to generic flex-grow behavior.
-  
+
   // Note: API types say width_ratio is in the property `column`? Let's check type definition.
   // Actually, ColumnBlockObjectResponse has `type: 'column'` and `column: { children: ... }` but specifically
-  // standard Notion API response for column usually doesn't document `width_ratio` in the public TS types widely, 
+  // standard Notion API response for column usually doesn't document `width_ratio` in the public TS types widely,
   // but let's check if usage works or if we need to cast safely.
-  // Checking official docs again -- width_ratio IS documented but sometimes types lag. 
+  // Checking official docs again -- width_ratio IS documented but sometimes types lag.
   // We'll access it safely.
-  
+
   // Actually based on my knowledge of the official client types, it might be there.
   // Let's assume it is or cast as needed.
-  
+
   const widthRatio = (block as any).column?.width_ratio;
-  
-  const style: React.CSSProperties = widthRatio 
+
+  const style: React.CSSProperties = widthRatio
     ? { flex: `${widthRatio} 1 0` }
     : { flex: 1 };
 

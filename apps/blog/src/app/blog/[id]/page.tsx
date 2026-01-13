@@ -6,6 +6,7 @@ import {
   TableOfContents,
 } from '@/components/post';
 import { Profile } from '@/components/profile/Profile';
+import { siteConfig } from '@/config/site.config';
 import { ErrorCode } from '@/domain/errors';
 import { createImageService } from '@/infrastructure/image';
 import { NotionPostRepository } from '@/infrastructure/notion/notion.repository';
@@ -15,6 +16,7 @@ import {
   hasMeaningfulToc,
 } from '@/lib';
 import '@/styles/notion-theme.css';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
@@ -26,6 +28,53 @@ interface PageProps {
 }
 
 export const revalidate = 3600; // ISR: 1시간마다 갱신
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const postResult = await postRepository.getPost(id);
+
+  if (!postResult.success) {
+    return {
+      title: '포스트를 찾을 수 없습니다',
+      description: '요청하신 포스트가 존재하지 않거나 삭제되었습니다.',
+    };
+  }
+
+  const post = postResult.data;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tuum.tech';
+  const postUrl = `${baseUrl}/blog/${id}`;
+  const description =
+    post.description || `${post.title} - ${siteConfig.blog.title}`;
+
+  return {
+    title: post.title,
+    description,
+    authors: [{ name: siteConfig.owner.name }],
+    keywords: post.tags,
+    openGraph: {
+      title: post.title,
+      description,
+      type: 'article',
+      url: postUrl,
+      siteName: siteConfig.blog.title,
+      locale: 'ko_KR',
+      publishedTime: post.date?.toISOString(),
+      modifiedTime: post.updatedAt.toISOString(),
+      authors: [siteConfig.owner.name],
+      tags: post.tags,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description,
+    },
+    alternates: {
+      canonical: postUrl,
+    },
+  };
+}
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { id } = await params;
@@ -79,77 +128,106 @@ export default async function BlogPostPage({ params }: PageProps) {
     post.date ?? post.updatedAt
   );
 
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tuum.tech';
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.description,
+    datePublished: post.date?.toISOString(),
+    dateModified: post.updatedAt.toISOString(),
+    author: {
+      '@type': 'Person',
+      name: siteConfig.owner.name,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: siteConfig.blog.title,
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `${baseUrl}/blog/${post.id}`,
+    },
+    keywords: post.tags.join(', '),
+  };
+
   return (
-    <div className="container-blog py-8">
-      <div className="flex gap-8 items-start">
-        {/* 메인 콘텐츠 */}
-        <article className="flex-1 min-w-0">
-          {/* 포스트 헤더 */}
-          <PostHeader post={post} readingTime={readingTime} />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <div className="container-blog py-8">
+        <div className="flex gap-8 items-start">
+          {/* 메인 콘텐츠 */}
+          <article className="flex-1 min-w-0">
+            {/* 포스트 헤더 */}
+            <PostHeader post={post} readingTime={readingTime} />
 
-          {/* 모바일 시리즈 네비게이터 */}
-          {post.series && seriesPosts.length > 0 && (
-            <div className="lg:hidden">
-              <Suspense fallback={null}>
-                <SeriesNavigator
-                  seriesName={post.series}
-                  posts={seriesPosts}
-                  currentPostId={post.id}
-                />
-              </Suspense>
-            </div>
-          )}
-
-          {/* 모바일 목차 */}
-          {showToc && (
-            <div className="lg:hidden">
-              <Suspense fallback={null}>
-                <TableOfContents items={tocItems} />
-              </Suspense>
-            </div>
-          )}
-
-          {/* 본문 */}
-          <div className="prose prose-lg max-w-3xl mx-auto dark:prose-invert">
-            <NotionRenderer blocks={blocks} />
-          </div>
-
-          {/* 작성자 프로필 */}
-          <div className="max-w-3xl mx-auto">
-            <Profile variant="article-footer" />
-          </div>
-
-          {/* 포스트 네비게이터 (이전/다음 글) - 옵션 2: 프로필 하단 */}
-          <div className="max-w-3xl mx-auto mb-8">
-            <PostNavigator prevPost={prev} nextPost={next} />
-          </div>
-
-          {/* 댓글 영역 (추후 예정) - 옵션 2에 따라 네비게이터 하단 배치 */}
-          {/* <Comments /> */}
-        </article>
-
-        {/* 데스크탑 사이드바: 시리즈 + 목차 */}
-        {(showToc || (post.series && seriesPosts.length > 0)) && (
-          <div className="hidden lg:block sticky top-20 self-start w-64 shrink-0">
-            {/* 시리즈 네비게이터 */}
+            {/* 모바일 시리즈 네비게이터 */}
             {post.series && seriesPosts.length > 0 && (
-              <Suspense fallback={null}>
-                <SeriesNavigator
-                  seriesName={post.series}
-                  posts={seriesPosts}
-                  currentPostId={post.id}
-                />
-              </Suspense>
+              <div className="lg:hidden">
+                <Suspense fallback={null}>
+                  <SeriesNavigator
+                    seriesName={post.series}
+                    posts={seriesPosts}
+                    currentPostId={post.id}
+                  />
+                </Suspense>
+              </div>
             )}
-            {/* 목차 */}
+
+            {/* 모바일 목차 */}
             {showToc && (
-              <Suspense fallback={null}>
-                <TableOfContents items={tocItems} />
-              </Suspense>
+              <div className="lg:hidden">
+                <Suspense fallback={null}>
+                  <TableOfContents items={tocItems} />
+                </Suspense>
+              </div>
             )}
-          </div>
-        )}
+
+            {/* 본문 */}
+            <div className="prose prose-lg max-w-3xl mx-auto dark:prose-invert">
+              <NotionRenderer blocks={blocks} />
+            </div>
+
+            {/* 작성자 프로필 */}
+            <div className="max-w-3xl mx-auto">
+              <Profile variant="article-footer" />
+            </div>
+
+            {/* 포스트 네비게이터 (이전/다음 글) - 옵션 2: 프로필 하단 */}
+            <div className="max-w-3xl mx-auto mb-8">
+              <PostNavigator prevPost={prev} nextPost={next} />
+            </div>
+
+            {/* 댓글 영역 (추후 예정) - 옵션 2에 따라 네비게이터 하단 배치 */}
+            {/* <Comments /> */}
+          </article>
+
+          {/* 데스크탑 사이드바: 시리즈 + 목차 */}
+          {(showToc || (post.series && seriesPosts.length > 0)) && (
+            <div className="hidden lg:block sticky top-20 self-start w-64 shrink-0">
+              {/* 시리즈 네비게이터 */}
+              {post.series && seriesPosts.length > 0 && (
+                <Suspense fallback={null}>
+                  <SeriesNavigator
+                    seriesName={post.series}
+                    posts={seriesPosts}
+                    currentPostId={post.id}
+                  />
+                </Suspense>
+              )}
+              {/* 목차 */}
+              {showToc && (
+                <Suspense fallback={null}>
+                  <TableOfContents items={tocItems} />
+                </Suspense>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -7,7 +7,7 @@ import {
   ScrollToTop,
   ThemeProvider,
 } from '@/components/layout';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { ScrollRestoration } from 'next-scroll-restoration';
 import { Noto_Sans_KR, Source_Code_Pro } from 'next/font/google';
 import localFont from 'next/font/local';
@@ -43,11 +43,50 @@ const sourceCodePro = Source_Code_Pro({
 
 import { siteConfig } from '@/config/site.config';
 
-// ...
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tuum.tech';
 
 export const metadata: Metadata = {
-  title: siteConfig.blog.title,
+  metadataBase: new URL(baseUrl),
+  title: {
+    default: siteConfig.blog.title,
+    template: `%s | ${siteConfig.blog.title}`,
+  },
   description: siteConfig.owner.description,
+  keywords: ['블로그', '기술블로그', 'Notion', 'Next.js'],
+  authors: [{ name: siteConfig.owner.name }],
+  creator: siteConfig.owner.name,
+  openGraph: {
+    type: 'website',
+    locale: 'ko_KR',
+    siteName: siteConfig.blog.title,
+    title: siteConfig.blog.title,
+    description: siteConfig.owner.description,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteConfig.blog.title,
+    description: siteConfig.owner.description,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#121212' },
+  ],
 };
 
 export default function RootLayout({
