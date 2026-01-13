@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface TagSidebarProps {
@@ -27,6 +27,11 @@ function ChevronDownIcon({ className }: { className?: string }) {
   );
 }
 
+interface UserOverride {
+  expanded: boolean;
+  forTag: string | null;
+}
+
 export function TagSidebar({ tags }: TagSidebarProps) {
   const searchParams = useSearchParams();
   const selectedTag = searchParams.get('tag');
@@ -34,28 +39,32 @@ export function TagSidebar({ tags }: TagSidebarProps) {
   const VISIBLE_COUNT = 24;
   const COLLAPSE_THRESHOLD = 28;
 
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [userOverride, setUserOverride] = useState<UserOverride | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const shouldShowToggle = tags.length > COLLAPSE_THRESHOLD;
   const remainingCount = tags.length - VISIBLE_COUNT;
 
-  useEffect(() => {
-    if (selectedTag && shouldShowToggle) {
-      const selectedIndex = tags.findIndex((t) => t.name === selectedTag);
-      if (selectedIndex >= VISIBLE_COUNT) {
-        setIsExpanded(true);
-      }
-    }
+  const selectedTagIsHidden = useMemo(() => {
+    if (!selectedTag || !shouldShowToggle) return false;
+    const selectedIndex = tags.findIndex((t) => t.name === selectedTag);
+    return selectedIndex >= VISIBLE_COUNT;
   }, [selectedTag, tags, shouldShowToggle, VISIBLE_COUNT]);
 
-  const handleToggle = () => {
-    if (isExpanded) {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTop = 0;
-      }
+  const isExpanded = useMemo(() => {
+    if (userOverride && userOverride.forTag === selectedTag) {
+      return userOverride.expanded;
     }
-    setIsExpanded(!isExpanded);
+    return selectedTagIsHidden;
+  }, [userOverride, selectedTag, selectedTagIsHidden]);
+
+  const handleToggle = () => {
+    const newExpanded = !isExpanded;
+    setUserOverride({ expanded: newExpanded, forTag: selectedTag });
+
+    if (!newExpanded && scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
   };
 
   const getTagHref = (tagName: string): string => {
