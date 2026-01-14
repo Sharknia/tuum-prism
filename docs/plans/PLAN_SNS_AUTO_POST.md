@@ -657,7 +657,7 @@ _구현 중 발견한 이슈나 학습 내용을 여기에 기록합니다._
 |   1   |  ✅  | [PHASE-1-LINKEDIN-OAUTH.md](./sns-auto-post/PHASE-1-LINKEDIN-OAUTH.md)                 | LinkedIn OAuth 엔드포인트 |   ~45분   |
 |   2   |  ✅  | [PHASE-2-LINKEDIN-TOKEN-REFRESH.md](./sns-auto-post/PHASE-2-LINKEDIN-TOKEN-REFRESH.md) | LinkedIn 토큰 자동 갱신   |  ~1시간   |
 |   3   |  ✅  | [PHASE-3-CORE-POSTING.md](./sns-auto-post/PHASE-3-CORE-POSTING.md)                     | SNS 포스팅 핵심 로직      |  ~1시간   |
-|   4   |  ⏳  | [PHASE-4-PLATFORM-POSTING.md](./sns-auto-post/PHASE-4-PLATFORM-POSTING.md)             | 플랫폼별 포스팅           |  4-5시간  |
+|   4   |  ✅  | [PHASE-4-PLATFORM-POSTING.md](./sns-auto-post/PHASE-4-PLATFORM-POSTING.md)             | 플랫폼별 포스팅           |   ~30분   |
 |   5   |  ⏳  | [PHASE-5-NOTION-WRITEBACK.md](./sns-auto-post/PHASE-5-NOTION-WRITEBACK.md)             | Notion Write-back         |  2-3시간  |
 
 **총 예상 소요: 15-21시간**

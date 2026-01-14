@@ -1,8 +1,8 @@
 # SNS Auto Post Workflow
-# Phase 3: SNS 포스팅 핵심 로직
+# Phase 3: SNS 포스팅 핵심 로직 + Phase 4: 플랫폼별 포스팅
 #
 # 이 워크플로우는 Notion에서 Ready 상태 글을 조회하고,
-# SNS용 콘텐츠로 변환하여 Phase 4에서 사용할 데이터를 준비합니다.
+# SNS용 콘텐츠로 변환한 뒤 X, LinkedIn, Threads에 포스팅합니다.
 #
 # 트리거:
 #   - 매시간 정각 (Cron)
@@ -523,3 +523,470 @@ jobs:
             });
 
             console.log('📢 Error issue created');
+
+  # ============================================
+  # Phase 4: X (Twitter) 포스팅
+  # ============================================
+  post-to-x:
+    name: Post to X (Twitter)
+    runs-on: ubuntu-latest
+    needs: [prepare-content]
+    if: needs.prepare-content.outputs.has_posts == 'true'
+
+    outputs:
+      status: ${{ steps.result.outputs.status }}
+      url: ${{ steps.result.outputs.url }}
+      error: ${{ steps.result.outputs.error }}
+
+    steps:
+      - name: Check X API credentials
+        id: check-creds
+        run: |
+          if [ -z "${{ secrets.X_API_KEY }}" ] || \
+             [ -z "${{ secrets.X_API_SECRET }}" ] || \
+             [ -z "${{ secrets.X_ACCESS_TOKEN }}" ] || \
+             [ -z "${{ secrets.X_ACCESS_TOKEN_SECRET }}" ]; then
+            echo "configured=false" >> $GITHUB_OUTPUT
+            echo "⚠️ X API credentials not fully configured, skipping"
+          else
+            echo "configured=true" >> $GITHUB_OUTPUT
+            echo "✅ X API credentials configured"
+          fi
+
+      - name: Setup Node.js
+        if: steps.check-creds.outputs.configured == 'true' && github.event.inputs.dry_run != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Post to X
+        id: post
+        if: steps.check-creds.outputs.configured == 'true'
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+          POST_TEXT: ${{ needs.prepare-content.outputs.post_short }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "🧪 DRY RUN: Would post to X"
+            echo "📝 Content preview:"
+            echo "$POST_TEXT" | head -c 100
+            echo "..."
+            echo "status=dry_run" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          npm install twitter-api-v2
+
+          node << 'EOFNODE'
+          const { TwitterApi } = require('twitter-api-v2');
+          const fs = require('fs');
+
+          const client = new TwitterApi({
+            appKey: process.env.X_API_KEY,
+            appSecret: process.env.X_API_SECRET,
+            accessToken: process.env.X_ACCESS_TOKEN,
+            accessSecret: process.env.X_ACCESS_TOKEN_SECRET,
+          });
+
+          async function postTweet() {
+            try {
+              const tweet = await client.v2.tweet(process.env.POST_TEXT);
+              const tweetId = tweet.data.id;
+              const tweetUrl = `https://x.com/i/status/${tweetId}`;
+
+              console.log(`✅ Tweet posted successfully!`);
+              console.log(`🔗 URL: ${tweetUrl}`);
+
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, `status=success\n`);
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, `url=${tweetUrl}\n`);
+            } catch (error) {
+              console.error(`❌ Failed to post tweet: ${error.message}`);
+
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, `status=error\n`);
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, `error=${error.message.substring(0, 200)}\n`);
+            }
+          }
+
+          postTweet();
+          EOFNODE
+
+      - name: Set result outputs
+        id: result
+        if: always()
+        env:
+          CONFIGURED: ${{ steps.check-creds.outputs.configured }}
+          POST_STATUS: ${{ steps.post.outputs.status }}
+          POST_URL: ${{ steps.post.outputs.url }}
+          POST_ERROR: ${{ steps.post.outputs.error }}
+        run: |
+          if [ "$CONFIGURED" = "false" ]; then
+            echo "status=skipped" >> $GITHUB_OUTPUT
+            echo "error=X API credentials not configured" >> $GITHUB_OUTPUT
+          elif [ -n "$POST_STATUS" ]; then
+            echo "status=$POST_STATUS" >> $GITHUB_OUTPUT
+            echo "url=$POST_URL" >> $GITHUB_OUTPUT
+            echo "error=$POST_ERROR" >> $GITHUB_OUTPUT
+          else
+            echo "status=error" >> $GITHUB_OUTPUT
+            echo "error=Unknown error" >> $GITHUB_OUTPUT
+          fi
+
+  # ============================================
+  # Phase 4: LinkedIn 포스팅
+  # ============================================
+  post-to-linkedin:
+    name: Post to LinkedIn
+    runs-on: ubuntu-latest
+    needs: [prepare-content]
+    if: needs.prepare-content.outputs.has_posts == 'true'
+
+    outputs:
+      status: ${{ steps.result.outputs.status }}
+      url: ${{ steps.result.outputs.url }}
+      error: ${{ steps.result.outputs.error }}
+
+    steps:
+      - name: Get LinkedIn token from Edge Config
+        id: get-token
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          EDGE_CONFIG_ID: ${{ secrets.EDGE_CONFIG_ID }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$EDGE_CONFIG_ID" ]; then
+            echo "configured=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Edge Config credentials not configured, skipping LinkedIn"
+            exit 0
+          fi
+
+          RESPONSE=$(curl -s "https://edge-config.vercel.com/${EDGE_CONFIG_ID}?token=${VERCEL_TOKEN}")
+
+          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.LINKEDIN_ACCESS_TOKEN // empty')
+
+          if [ -z "$ACCESS_TOKEN" ] || [ "$ACCESS_TOKEN" = "null" ]; then
+            echo "configured=false" >> $GITHUB_OUTPUT
+            echo "⚠️ LinkedIn access token not found in Edge Config"
+            exit 0
+          fi
+
+          echo "configured=true" >> $GITHUB_OUTPUT
+          echo "access_token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
+          echo "✅ LinkedIn token retrieved from Edge Config"
+
+      - name: Get LinkedIn user ID
+        id: get-user
+        if: steps.get-token.outputs.configured == 'true'
+        env:
+          ACCESS_TOKEN: ${{ steps.get-token.outputs.access_token }}
+        run: |
+          RESPONSE=$(curl -s "https://api.linkedin.com/v2/userinfo" \
+            -H "Authorization: Bearer $ACCESS_TOKEN")
+
+          PERSON_ID=$(echo "$RESPONSE" | jq -r '.sub // empty')
+
+          if [ -z "$PERSON_ID" ] || [ "$PERSON_ID" = "null" ]; then
+            echo "❌ Failed to get LinkedIn user ID"
+            echo "$RESPONSE" | jq '.' 2>/dev/null || echo "$RESPONSE"
+            echo "user_found=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "person_id=$PERSON_ID" >> $GITHUB_OUTPUT
+          echo "user_found=true" >> $GITHUB_OUTPUT
+          echo "✅ LinkedIn user ID: $PERSON_ID"
+
+      - name: Post to LinkedIn
+        id: post
+        if: steps.get-user.outputs.user_found == 'true'
+        env:
+          ACCESS_TOKEN: ${{ steps.get-token.outputs.access_token }}
+          PERSON_ID: ${{ steps.get-user.outputs.person_id }}
+          POST_TEXT: ${{ needs.prepare-content.outputs.post_long }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "🧪 DRY RUN: Would post to LinkedIn"
+            echo "📝 Content preview:"
+            echo "$POST_TEXT" | head -c 150
+            echo "..."
+            echo "status=dry_run" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          ESCAPED_TEXT=$(echo "$POST_TEXT" | jq -Rs .)
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            "https://api.linkedin.com/rest/posts" \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -H "LinkedIn-Version: 202401" \
+            -H "X-Restli-Protocol-Version: 2.0.0" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"author\": \"urn:li:person:$PERSON_ID\",
+              \"commentary\": $ESCAPED_TEXT,
+              \"visibility\": \"PUBLIC\",
+              \"distribution\": {
+                \"feedDistribution\": \"MAIN_FEED\",
+                \"targetEntities\": [],
+                \"thirdPartyDistributionChannels\": []
+              },
+              \"lifecycleState\": \"PUBLISHED\"
+            }")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          if [ "$HTTP_CODE" = "201" ]; then
+            POST_URL="https://www.linkedin.com/feed/"
+            echo "✅ LinkedIn post created successfully!"
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "url=$POST_URL" >> $GITHUB_OUTPUT
+          else
+            echo "❌ LinkedIn API error: HTTP $HTTP_CODE"
+            echo "$BODY" | jq '.' 2>/dev/null || echo "$BODY"
+            ERROR_MSG=$(echo "$BODY" | jq -r '.message // .error // "HTTP error"' 2>/dev/null || echo "HTTP $HTTP_CODE")
+            echo "status=error" >> $GITHUB_OUTPUT
+            echo "error=$ERROR_MSG" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set result outputs
+        id: result
+        if: always()
+        env:
+          TOKEN_CONFIGURED: ${{ steps.get-token.outputs.configured }}
+          USER_FOUND: ${{ steps.get-user.outputs.user_found }}
+          POST_STATUS: ${{ steps.post.outputs.status }}
+          POST_URL: ${{ steps.post.outputs.url }}
+          POST_ERROR: ${{ steps.post.outputs.error }}
+        run: |
+          if [ "$TOKEN_CONFIGURED" = "false" ]; then
+            echo "status=skipped" >> $GITHUB_OUTPUT
+            echo "error=LinkedIn not configured" >> $GITHUB_OUTPUT
+          elif [ "$USER_FOUND" = "false" ]; then
+            echo "status=error" >> $GITHUB_OUTPUT
+            echo "error=Failed to get LinkedIn user ID" >> $GITHUB_OUTPUT
+          elif [ -n "$POST_STATUS" ]; then
+            echo "status=$POST_STATUS" >> $GITHUB_OUTPUT
+            echo "url=$POST_URL" >> $GITHUB_OUTPUT
+            echo "error=$POST_ERROR" >> $GITHUB_OUTPUT
+          else
+            echo "status=error" >> $GITHUB_OUTPUT
+            echo "error=Unknown error" >> $GITHUB_OUTPUT
+          fi
+
+  # ============================================
+  # Phase 4: Threads 포스팅
+  # ============================================
+  post-to-threads:
+    name: Post to Threads
+    runs-on: ubuntu-latest
+    needs: [prepare-content]
+    if: needs.prepare-content.outputs.has_posts == 'true'
+
+    outputs:
+      status: ${{ steps.result.outputs.status }}
+      url: ${{ steps.result.outputs.url }}
+      error: ${{ steps.result.outputs.error }}
+
+    steps:
+      - name: Check Threads credentials
+        id: check-creds
+        run: |
+          if [ -z "${{ secrets.THREADS_ACCESS_TOKEN }}" ] || \
+             [ -z "${{ secrets.THREADS_USER_ID }}" ]; then
+            echo "configured=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Threads credentials not configured, skipping"
+          else
+            echo "configured=true" >> $GITHUB_OUTPUT
+            echo "✅ Threads credentials configured"
+          fi
+
+      - name: Create Threads container
+        id: container
+        if: steps.check-creds.outputs.configured == 'true'
+        env:
+          ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          USER_ID: ${{ secrets.THREADS_USER_ID }}
+          POST_TEXT: ${{ needs.prepare-content.outputs.post_long }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "🧪 DRY RUN: Would create Threads container"
+            echo "📝 Content preview:"
+            echo "$POST_TEXT" | head -c 150
+            echo "..."
+            echo "status=dry_run" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          ENCODED_TEXT=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.stdin.read()))" <<< "$POST_TEXT")
+
+          RESPONSE=$(curl -s -X POST \
+            "https://graph.threads.net/v1.0/${USER_ID}/threads?media_type=TEXT&text=${ENCODED_TEXT}&access_token=${ACCESS_TOKEN}")
+
+          CONTAINER_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+          ERROR=$(echo "$RESPONSE" | jq -r '.error.message // empty')
+
+          if [ -n "$CONTAINER_ID" ] && [ "$CONTAINER_ID" != "null" ]; then
+            echo "container_id=$CONTAINER_ID" >> $GITHUB_OUTPUT
+            echo "container_created=true" >> $GITHUB_OUTPUT
+            echo "✅ Threads container created: $CONTAINER_ID"
+          else
+            echo "❌ Failed to create Threads container"
+            echo "$RESPONSE" | jq '.' 2>/dev/null || echo "$RESPONSE"
+            echo "container_created=false" >> $GITHUB_OUTPUT
+            echo "error=$ERROR" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish Threads post
+        id: publish
+        if: steps.container.outputs.container_created == 'true'
+        env:
+          ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          USER_ID: ${{ secrets.THREADS_USER_ID }}
+          CONTAINER_ID: ${{ steps.container.outputs.container_id }}
+        run: |
+          sleep 2
+
+          RESPONSE=$(curl -s -X POST \
+            "https://graph.threads.net/v1.0/${USER_ID}/threads_publish?creation_id=${CONTAINER_ID}&access_token=${ACCESS_TOKEN}")
+
+          POST_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+          ERROR=$(echo "$RESPONSE" | jq -r '.error.message // empty')
+
+          if [ -n "$POST_ID" ] && [ "$POST_ID" != "null" ]; then
+            POST_URL="https://www.threads.net/post/${POST_ID}"
+            echo "✅ Threads post published: $POST_URL"
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "url=$POST_URL" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Failed to publish Threads post"
+            echo "$RESPONSE" | jq '.' 2>/dev/null || echo "$RESPONSE"
+            echo "status=error" >> $GITHUB_OUTPUT
+            echo "error=$ERROR" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set result outputs
+        id: result
+        if: always()
+        env:
+          CONFIGURED: ${{ steps.check-creds.outputs.configured }}
+          CONTAINER_STATUS: ${{ steps.container.outputs.status }}
+          CONTAINER_CREATED: ${{ steps.container.outputs.container_created }}
+          CONTAINER_ERROR: ${{ steps.container.outputs.error }}
+          PUBLISH_STATUS: ${{ steps.publish.outputs.status }}
+          PUBLISH_URL: ${{ steps.publish.outputs.url }}
+          PUBLISH_ERROR: ${{ steps.publish.outputs.error }}
+        run: |
+          if [ "$CONFIGURED" = "false" ]; then
+            echo "status=skipped" >> $GITHUB_OUTPUT
+            echo "error=Threads not configured" >> $GITHUB_OUTPUT
+          elif [ "$CONTAINER_STATUS" = "dry_run" ]; then
+            echo "status=dry_run" >> $GITHUB_OUTPUT
+          elif [ "$CONTAINER_CREATED" = "false" ]; then
+            echo "status=error" >> $GITHUB_OUTPUT
+            echo "error=$CONTAINER_ERROR" >> $GITHUB_OUTPUT
+          elif [ -n "$PUBLISH_STATUS" ]; then
+            echo "status=$PUBLISH_STATUS" >> $GITHUB_OUTPUT
+            echo "url=$PUBLISH_URL" >> $GITHUB_OUTPUT
+            echo "error=$PUBLISH_ERROR" >> $GITHUB_OUTPUT
+          else
+            echo "status=error" >> $GITHUB_OUTPUT
+            echo "error=Unknown error" >> $GITHUB_OUTPUT
+          fi
+
+  # ============================================
+  # Phase 4: 결과 수집 및 Summary 생성
+  # ============================================
+  collect-results:
+    name: Collect Results
+    runs-on: ubuntu-latest
+    needs: [prepare-content, post-to-x, post-to-linkedin, post-to-threads]
+    if: always() && needs.prepare-content.outputs.has_posts == 'true'
+
+    outputs:
+      page_id: ${{ needs.prepare-content.outputs.page_id }}
+      x_status: ${{ needs.post-to-x.outputs.status }}
+      x_url: ${{ needs.post-to-x.outputs.url }}
+      linkedin_status: ${{ needs.post-to-linkedin.outputs.status }}
+      linkedin_url: ${{ needs.post-to-linkedin.outputs.url }}
+      threads_status: ${{ needs.post-to-threads.outputs.status }}
+      threads_url: ${{ needs.post-to-threads.outputs.url }}
+
+    steps:
+      - name: Generate Platform Results Summary
+        env:
+          TITLE: ${{ needs.prepare-content.outputs.title }}
+          BLOG_URL: ${{ needs.prepare-content.outputs.blog_url }}
+          TRANSFORM: ${{ needs.prepare-content.outputs.transform_method }}
+          X_STATUS: ${{ needs.post-to-x.outputs.status }}
+          X_URL: ${{ needs.post-to-x.outputs.url }}
+          X_ERROR: ${{ needs.post-to-x.outputs.error }}
+          LI_STATUS: ${{ needs.post-to-linkedin.outputs.status }}
+          LI_URL: ${{ needs.post-to-linkedin.outputs.url }}
+          LI_ERROR: ${{ needs.post-to-linkedin.outputs.error }}
+          TH_STATUS: ${{ needs.post-to-threads.outputs.status }}
+          TH_URL: ${{ needs.post-to-threads.outputs.url }}
+          TH_ERROR: ${{ needs.post-to-threads.outputs.error }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          echo "## 📱 SNS Auto Post - Platform Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "> 🧪 **DRY RUN MODE** - No actual posts were created" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "### 📄 Post Info" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Title | $TITLE |" >> $GITHUB_STEP_SUMMARY
+          echo "| Blog URL | $BLOG_URL |" >> $GITHUB_STEP_SUMMARY
+          echo "| Transform Method | $TRANSFORM |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### 🌐 Platform Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | Status | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|--------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          X_STATUS="${X_STATUS:-skipped}"
+          case "$X_STATUS" in
+            success) echo "| X (Twitter) | ✅ Success | [$X_URL]($X_URL) |" >> $GITHUB_STEP_SUMMARY ;;
+            error)   echo "| X (Twitter) | ❌ Error | $X_ERROR |" >> $GITHUB_STEP_SUMMARY ;;
+            dry_run) echo "| X (Twitter) | 🧪 Dry Run | Would post |" >> $GITHUB_STEP_SUMMARY ;;
+            *)       echo "| X (Twitter) | ⏭️ Skipped | ${X_ERROR:-Not configured} |" >> $GITHUB_STEP_SUMMARY ;;
+          esac
+
+          LI_STATUS="${LI_STATUS:-skipped}"
+          case "$LI_STATUS" in
+            success) echo "| LinkedIn | ✅ Success | [$LI_URL]($LI_URL) |" >> $GITHUB_STEP_SUMMARY ;;
+            error)   echo "| LinkedIn | ❌ Error | $LI_ERROR |" >> $GITHUB_STEP_SUMMARY ;;
+            dry_run) echo "| LinkedIn | 🧪 Dry Run | Would post |" >> $GITHUB_STEP_SUMMARY ;;
+            *)       echo "| LinkedIn | ⏭️ Skipped | ${LI_ERROR:-Not configured} |" >> $GITHUB_STEP_SUMMARY ;;
+          esac
+
+          TH_STATUS="${TH_STATUS:-skipped}"
+          case "$TH_STATUS" in
+            success) echo "| Threads | ✅ Success | [$TH_URL]($TH_URL) |" >> $GITHUB_STEP_SUMMARY ;;
+            error)   echo "| Threads | ❌ Error | $TH_ERROR |" >> $GITHUB_STEP_SUMMARY ;;
+            dry_run) echo "| Threads | 🧪 Dry Run | Would post |" >> $GITHUB_STEP_SUMMARY ;;
+            *)       echo "| Threads | ⏭️ Skipped | ${TH_ERROR:-Not configured} |" >> $GITHUB_STEP_SUMMARY ;;
+          esac
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*Workflow completed at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')*" >> $GITHUB_STEP_SUMMARY
+
+          SUCCESS_COUNT=0
+          [ "$X_STATUS" = "success" ] && SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          [ "$LI_STATUS" = "success" ] && SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          [ "$TH_STATUS" = "success" ] && SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+
+          echo ""
+          echo "📊 Summary: $SUCCESS_COUNT platform(s) posted successfully"
