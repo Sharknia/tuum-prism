@@ -28,6 +28,10 @@ const envSchema = z.object({
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
+
+  // [선택] Vercel Edge Config (LinkedIn 토큰 관리)
+  VERCEL_TOKEN: z.string().optional(),
+  EDGE_CONFIG_ID: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -79,4 +83,8 @@ export function isImageStorageConfigured(): boolean {
     process.env.CLOUDINARY_API_SECRET
   );
   return hasVercelBlob || hasCloudinary;
+}
+
+export function isEdgeConfigured(): boolean {
+  return !!(process.env.VERCEL_TOKEN && process.env.EDGE_CONFIG_ID);
 }

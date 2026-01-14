@@ -17,7 +17,7 @@ Skip for: bug fixes, styling, minor refactors.
 
 **Notion CMS → Blog multi-publishing monorepo.**
 
-Currently supports blog only. SNS publishing (X, LinkedIn, Threads) is planned.
+Currently supports blog. SNS publishing infrastructure (LinkedIn OAuth) is implemented, with X/Threads planned.
 
 ## Tech Stack
 
@@ -54,6 +54,8 @@ apps/setup ─deploys→ apps/blog (via Vercel API)
 | About page       | `apps/blog/src/app/about/page.tsx`                         |
 | Series list      | `apps/blog/src/app/(main)/series/page.tsx`                 |
 | Series detail    | `apps/blog/src/app/(main)/series/[slug]/page.tsx`          |
+| LinkedIn OAuth   | `apps/blog/src/app/api/auth/linkedin/route.ts`             |
+| OAuth Callback   | `apps/blog/src/app/api/auth/linkedin/callback/route.ts`    |
 | Notion rendering | `packages/refract-notion/src/components/BlockRenderer.tsx` |
 | Setup CLI        | `apps/setup/src/cli.ts` → `orchestrator.ts`                |
 
@@ -76,7 +78,8 @@ src/
 │   └── result.ts           # Result<T, E> pattern
 ├── infrastructure/         # External system adapters
 │   ├── notion/             # Notion API implementation
-│   └── image/              # Image storage (Blob/Passthrough)
+│   ├── image/              # Image storage (Blob/Passthrough)
+│   └── edge-config/        # Vercel Edge Config client (LinkedIn tokens)
 ├── components/             # React components
 │   ├── filter/             # SearchBar, TagSidebar, SeriesDropdown
 │   ├── layout/             # Header, Footer, ThemeToggle, etc.
@@ -99,14 +102,16 @@ src/
 
 ## Core Types & Patterns
 
-| Type             | Location                              | Purpose                              |
-| ---------------- | ------------------------------------- | ------------------------------------ |
-| `Result<T, E>`   | `domain/result.ts`                    | Error-as-value pattern (no throwing) |
-| `Post`           | `domain/post/post.entity.ts`          | Blog post entity                     |
-| `PostStatus`     | `domain/post/post-status.enum.ts`     | `Updated`, `Writing`, `About`, etc.  |
-| `PostRepository` | `application/post/post.repository.ts` | Port interface (DI)                  |
-| `AppError`       | `domain/errors/app-error.ts`          | Typed error with `ErrorCode`         |
-| `ImageService`   | `infrastructure/image/image.types.ts` | Image processing interface           |
+| Type               | Location                                           | Purpose                              |
+| ------------------ | -------------------------------------------------- | ------------------------------------ |
+| `Result<T, E>`     | `domain/result.ts`                                 | Error-as-value pattern (no throwing) |
+| `Post`             | `domain/post/post.entity.ts`                       | Blog post entity                     |
+| `PostStatus`       | `domain/post/post-status.enum.ts`                  | `Updated`, `Writing`, `About`, etc.  |
+| `PostRepository`   | `application/post/post.repository.ts`              | Port interface (DI)                  |
+| `AppError`         | `domain/errors/app-error.ts`                       | Typed error with `ErrorCode`         |
+| `ImageService`     | `infrastructure/image/image.types.ts`              | Image processing interface           |
+| `EdgeConfigClient` | `infrastructure/edge-config/edge-config.client.ts` | Vercel Edge Config CRUD              |
+| `LinkedInTokens`   | `infrastructure/edge-config/edge-config.types.ts`  | LinkedIn OAuth tokens type           |
 
 ### Factory Pattern
 
@@ -115,6 +120,16 @@ src/
 createImageService()
   → BLOB_READ_WRITE_TOKEN exists? ImageServiceImpl : PassthroughImageService
 ```
+
+---
+
+## API Routes
+
+| Route                         | Method | Description                              |
+| ----------------------------- | ------ | ---------------------------------------- |
+| `/api/auth/linkedin`          | GET    | Start LinkedIn OAuth flow (redirect)     |
+| `/api/auth/linkedin/callback` | GET    | OAuth callback, token exchange & storage |
+| `/api/notion/test`            | GET    | Notion connection test (dev only)        |
 
 ---
 
@@ -204,6 +219,7 @@ src/
 | Notion property change    | `blog/src/infrastructure/notion/notion.mapper.ts` |
 | New page route            | `blog/src/app/[route]/page.tsx`                   |
 | Add environment variable  | `blog/src/config/env.ts` (schema)                 |
+| Add Edge Config feature   | `blog/src/infrastructure/edge-config/`            |
 | Site config change        | `blog/src/config/site.config.ts`                  |
 | New image storage adapter | `blog/src/infrastructure/image/`                  |
 
