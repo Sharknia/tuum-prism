@@ -6,9 +6,10 @@ Notion에 작성된 원본 데이터(틈새의 빛)를 프리즘처럼 굴절시
 
 ## 📦 모노레포 구조
 
-| 패키지 | 경로 | 설명 |
-|--------|------|------|
-| [**@tuum/blog**](./apps/blog) | [`apps/blog`](./apps/blog) | Next.js 16 기반의 기술 블로그 애플리케이션 |
+| 패키지                                                | 경로                                                   | 설명                                        |
+| ----------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------- |
+| [**@tuum/blog**](./apps/blog)                         | [`apps/blog`](./apps/blog)                             | Next.js 16 기반의 기술 블로그 애플리케이션  |
+| [**@tuum/setup**](./apps/setup)                       | [`apps/setup`](./apps/setup)                           | Vercel 원터치 설치 CLI 도구                 |
 | [**@tuum/refract-notion**](./packages/refract-notion) | [`packages/refract-notion`](./packages/refract-notion) | 공식 SDK 기반 자체 Notion 렌더링 라이브러리 |
 
 ## 💡 기술적 의사결정
@@ -18,6 +19,7 @@ Notion에 작성된 원본 데이터(틈새의 빛)를 프리즘처럼 굴절시
 `react-notion-x`는 훌륭한 라이브러리지만, Notion의 **비공개 API**를 사용한다는 점이 장기적인 운영에 리스크가 될 수 있다고 판단했습니다.
 
 우리는 **안정성**과 **표준 준수**를 최우선으로 생각하여 다음과 같은 결정 내렸습니다:
+
 1.  **공식 SDK Only**: **`@notionhq/client`** 만을 사용하여 Notion API 변경에 유연하게 대처하고 안정성을 보장합니다.
 2.  **RSC 최적화**: Next.js App Router의 Server Components 환경에 최적화된 가벼운 구조를 설계했습니다.
 3.  **Headless**: 스타일링 제어권을 사용자에게 완전히 위임하여 Tailwind CSS 등과 완벽하게 결합할 수 있습니다.
@@ -42,6 +44,7 @@ Vercel에 바로 배포하고 싶다면 **원터치 설치 도구**를 사용하
 > 📖 상세 가이드: [apps/setup/README.md](./apps/setup/README.md)
 
 **필요한 것:**
+
 1. [Vercel Access Token](https://vercel.com/account/tokens)
 2. [Notion API Key](https://www.notion.so/my-integrations)
 
@@ -80,25 +83,25 @@ cp apps/blog/.env.example apps/blog/.env.local
 export const siteConfig = {
   blog: {
     // 블로그 제목 (상단 네비게이션, 브라우저 탭, SEO 제목에 사용됨)
-    title: 'Tuum Prism', 
+    title: "Tuum Prism",
   },
   owner: {
     // 작성자 이름 (메인 프로필, 게시글 하단 서명에 표시됨)
-    name: 'Furychick',
-    
+    name: "Furychick",
+
     // 프로필 설명 및 SEO 메타 설명 (화면과 검색엔진 모두에 사용됨)
-    description: 'Frontend Developer loves efficient workflows.',
-    
+    description: "Frontend Developer loves efficient workflows.",
+
     // 프로필 이미지 경로 (public 폴더 기준)
-    avatar: '/images/default-profile.svg', 
-    
+    avatar: "/images/default-profile.svg",
+
     // (선택) 소셜 링크 설정
     social: {
-      github: 'https://github.com/furychick', // GitHub 프로필 링크
-      email: 'furychick@example.com', // 이메일 주소
-      linkedin: 'https://linkedin.com/in/furychick', // LinkedIn 프로필 링크
-      x: 'https://x.com/furychick', // X (Twitter) 프로필 링크
-      threads: '', // Threads 프로필 링크
+      github: "https://github.com/furychick", // GitHub 프로필 링크
+      email: "furychick@example.com", // 이메일 주소
+      linkedin: "https://linkedin.com/in/furychick", // LinkedIn 프로필 링크
+      x: "https://x.com/furychick", // X (Twitter) 프로필 링크
+      threads: "", // Threads 프로필 링크
     },
   },
 };
@@ -108,7 +111,6 @@ export const siteConfig = {
 
 1. `apps/blog/public/images/` 폴더에 원하는 프로필 이미지(jpg, png, svg 등)를 넣으세요.
 2. `site.config.ts`의 `owner.avatar` 경로를 변경한 파일명으로 수정하세요.
-
 
 ### 개발 서버 실행
 
