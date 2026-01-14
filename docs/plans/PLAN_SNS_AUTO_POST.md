@@ -1,8 +1,8 @@
 # Implementation Plan: SNS 자동 포스팅 (SNS Auto Post)
 
-**Status**: ⏳ Pending
+**Status**: 🔄 In Progress
 **Started**: 2026-01-14
-**Last Updated**: 2026-01-14 (LinkedIn 토큰 관리 아키텍처 추가)
+**Last Updated**: 2026-01-14 (Phase 1 완료)
 **Estimated Completion**: TBD
 
 ---
@@ -29,7 +29,7 @@ Notion에 작성한 블로그 글을 **GitHub Actions**를 통해 SNS(X, LinkedI
 - [ ] Notion Write-back (상태 변경 + 로그 기록)
 - [ ] LinkedIn Access Token 자동 갱신 (60일 주기)
 - [ ] LinkedIn Refresh Token 만료 30일 전 알림
-- [ ] LinkedIn OAuth 재인증 엔드포인트 구현
+- [x] LinkedIn OAuth 재인증 엔드포인트 구현
 
 ### User Impact
 
@@ -644,6 +644,35 @@ jobs:
 ## 📝 Notes
 
 _구현 중 발견한 이슈나 학습 내용을 여기에 기록합니다._
+
+---
+
+## 📦 Phase별 To-Do 리스트
+
+구현은 아래 Phase별 문서를 따라 진행합니다:
+
+| Phase | 상태 | 문서                                                                                   | 설명                      | 예상 소요 |
+| :---: | :--: | -------------------------------------------------------------------------------------- | ------------------------- | :-------: |
+|   0   |  ⏳  | [PHASE-0-SETUP.md](./sns-auto-post/PHASE-0-SETUP.md)                                   | 인프라 및 초기 설정       |  1-2시간  |
+|   1   |  ✅  | [PHASE-1-LINKEDIN-OAUTH.md](./sns-auto-post/PHASE-1-LINKEDIN-OAUTH.md)                 | LinkedIn OAuth 엔드포인트 |   ~45분   |
+|   2   |  ⏳  | [PHASE-2-LINKEDIN-TOKEN-REFRESH.md](./sns-auto-post/PHASE-2-LINKEDIN-TOKEN-REFRESH.md) | LinkedIn 토큰 자동 갱신   |  2-3시간  |
+|   3   |  ⏳  | [PHASE-3-CORE-POSTING.md](./sns-auto-post/PHASE-3-CORE-POSTING.md)                     | SNS 포스팅 핵심 로직      |  4-5시간  |
+|   4   |  ⏳  | [PHASE-4-PLATFORM-POSTING.md](./sns-auto-post/PHASE-4-PLATFORM-POSTING.md)             | 플랫폼별 포스팅           |  4-5시간  |
+|   5   |  ⏳  | [PHASE-5-NOTION-WRITEBACK.md](./sns-auto-post/PHASE-5-NOTION-WRITEBACK.md)             | Notion Write-back         |  2-3시간  |
+
+**총 예상 소요: 15-21시간**
+
+### 의존성 그래프
+
+```
+Phase 0 (인프라)
+    │
+    ├──→ Phase 1 (LinkedIn OAuth) ──→ Phase 2 (토큰 자동 갱신)
+    │
+    └──→ Phase 3 (핵심 로직) ──→ Phase 4 (플랫폼 포스팅) ──→ Phase 5 (Write-back)
+```
+
+> Phase 1-2 (LinkedIn)와 Phase 3-5 (포스팅)는 병렬 진행 가능
 
 ---
 
