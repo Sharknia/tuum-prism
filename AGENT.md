@@ -17,7 +17,7 @@ Skip for: bug fixes, styling, minor refactors.
 
 **Notion CMS → Blog multi-publishing monorepo.**
 
-Currently supports blog. SNS publishing infrastructure (LinkedIn OAuth) is implemented, with X/Threads planned.
+Currently supports blog. SNS publishing infrastructure (LinkedIn OAuth + Token Auto-Refresh) is implemented, with X/Threads planned.
 
 ## Tech Stack
 
@@ -56,6 +56,7 @@ apps/setup ─deploys→ apps/blog (via Vercel API)
 | Series detail    | `apps/blog/src/app/(main)/series/[slug]/page.tsx`          |
 | LinkedIn OAuth   | `apps/blog/src/app/api/auth/linkedin/route.ts`             |
 | OAuth Callback   | `apps/blog/src/app/api/auth/linkedin/callback/route.ts`    |
+| Token Refresh    | `.github/workflows/refresh-linkedin-token.yml`             |
 | Notion rendering | `packages/refract-notion/src/components/BlockRenderer.tsx` |
 | Setup CLI        | `apps/setup/src/cli.ts` → `orchestrator.ts`                |
 
@@ -112,6 +113,7 @@ src/
 | `ImageService`     | `infrastructure/image/image.types.ts`              | Image processing interface           |
 | `EdgeConfigClient` | `infrastructure/edge-config/edge-config.client.ts` | Vercel Edge Config CRUD              |
 | `LinkedInTokens`   | `infrastructure/edge-config/edge-config.types.ts`  | LinkedIn OAuth tokens type           |
+| Token Expiry Utils | `infrastructure/edge-config/token-expiry.ts`       | Token expiry calculation (60d/365d)  |
 
 ### Factory Pattern
 
@@ -210,18 +212,50 @@ src/
 
 ---
 
+## GitHub Actions Workflows
+
+| Workflow                     | Trigger                         | Purpose                            |
+| ---------------------------- | ------------------------------- | ---------------------------------- |
+| `release-setup.yml`          | Tag `setup-v*`                  | Build & release setup binaries     |
+| `refresh-linkedin-token.yml` | Weekly (Mon 00:00 UTC) / Manual | Auto-refresh LinkedIn Access Token |
+
+### LinkedIn Token Refresh Workflow
+
+**Schedule:** Every Monday at 00:00 UTC (`cron: '0 0 * * 1'`)
+
+**Features:**
+
+- Reads tokens from Vercel Edge Config
+- Calculates token expiry (Access: 60d, Refresh: 365d)
+- Auto-refreshes Access Token if ≤7 days remaining
+- Creates GitHub Issue if Refresh Token expires in ≤30 days
+- Prevents duplicate alert issues
+- Generates workflow summary
+
+**Required Secrets:**
+
+```
+EDGE_CONFIG_ID, EDGE_CONFIG_TOKEN, VERCEL_TOKEN
+LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET
+NEXT_PUBLIC_BASE_URL
+```
+
+---
+
 ## Modification Guide
 
-| Change                    | Files to Modify                                   |
-| ------------------------- | ------------------------------------------------- |
-| New Notion block type     | `refract-notion/src/components/BlockRenderer.tsx` |
-| New filter option         | `blog/src/components/filter/`                     |
-| Notion property change    | `blog/src/infrastructure/notion/notion.mapper.ts` |
-| New page route            | `blog/src/app/[route]/page.tsx`                   |
-| Add environment variable  | `blog/src/config/env.ts` (schema)                 |
-| Add Edge Config feature   | `blog/src/infrastructure/edge-config/`            |
-| Site config change        | `blog/src/config/site.config.ts`                  |
-| New image storage adapter | `blog/src/infrastructure/image/`                  |
+| Change                    | Files to Modify                                       |
+| ------------------------- | ----------------------------------------------------- |
+| New Notion block type     | `refract-notion/src/components/BlockRenderer.tsx`     |
+| New filter option         | `blog/src/components/filter/`                         |
+| Notion property change    | `blog/src/infrastructure/notion/notion.mapper.ts`     |
+| New page route            | `blog/src/app/[route]/page.tsx`                       |
+| Add environment variable  | `blog/src/config/env.ts` (schema)                     |
+| Add Edge Config feature   | `blog/src/infrastructure/edge-config/`                |
+| Site config change        | `blog/src/config/site.config.ts`                      |
+| New image storage adapter | `blog/src/infrastructure/image/`                      |
+| Add GitHub Actions        | `.github/workflows/` + update this doc                |
+| Token expiry logic change | `blog/src/infrastructure/edge-config/token-expiry.ts` |
 
 ---
 
