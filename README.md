@@ -12,6 +12,14 @@ Notion에 작성된 원본 데이터(틈새의 빛)를 프리즘처럼 굴절시
 | [**@tuum/setup**](./apps/setup)                       | [`apps/setup`](./apps/setup)                           | Vercel 원터치 설치 CLI 도구                 |
 | [**@tuum/refract-notion**](./packages/refract-notion) | [`packages/refract-notion`](./packages/refract-notion) | 공식 SDK 기반 자체 Notion 렌더링 라이브러리 |
 
+## 🔄 GitHub Actions
+
+| 워크플로우                   | 트리거             | 설명                                  |
+| ---------------------------- | ------------------ | ------------------------------------- |
+| `release-setup.yml`          | 태그 `setup-v*`    | Setup CLI 바이너리 빌드 및 릴리즈     |
+| `refresh-linkedin-token.yml` | 매주 월요일 / 수동 | LinkedIn Access Token 자동 갱신       |
+| `sns-auto-post.yml`          | 매시간 / 수동      | Ready 상태 글 조회 및 SNS 콘텐츠 변환 |
+
 ## 💡 기술적 의사결정
 
 ### Q1. 왜 `react-notion-x`를 사용하지 않았나요?

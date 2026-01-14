@@ -17,7 +17,7 @@ Skip for: bug fixes, styling, minor refactors.
 
 **Notion CMS → Blog multi-publishing monorepo.**
 
-Currently supports blog. SNS publishing infrastructure (LinkedIn OAuth + Token Auto-Refresh) is implemented, with X/Threads planned.
+Currently supports blog. SNS publishing infrastructure (LinkedIn OAuth + Token Auto-Refresh + Core Posting Logic) is implemented, with platform-specific posting (X/LinkedIn/Threads) planned.
 
 ## Tech Stack
 
@@ -57,6 +57,7 @@ apps/setup ─deploys→ apps/blog (via Vercel API)
 | LinkedIn OAuth   | `apps/blog/src/app/api/auth/linkedin/route.ts`             |
 | OAuth Callback   | `apps/blog/src/app/api/auth/linkedin/callback/route.ts`    |
 | Token Refresh    | `.github/workflows/refresh-linkedin-token.yml`             |
+| SNS Auto Post    | `.github/workflows/sns-auto-post.yml`                      |
 | Notion rendering | `packages/refract-notion/src/components/BlockRenderer.tsx` |
 | Setup CLI        | `apps/setup/src/cli.ts` → `orchestrator.ts`                |
 
@@ -214,10 +215,11 @@ src/
 
 ## GitHub Actions Workflows
 
-| Workflow                     | Trigger                         | Purpose                            |
-| ---------------------------- | ------------------------------- | ---------------------------------- |
-| `release-setup.yml`          | Tag `setup-v*`                  | Build & release setup binaries     |
-| `refresh-linkedin-token.yml` | Weekly (Mon 00:00 UTC) / Manual | Auto-refresh LinkedIn Access Token |
+| Workflow                     | Trigger                         | Purpose                              |
+| ---------------------------- | ------------------------------- | ------------------------------------ |
+| `release-setup.yml`          | Tag `setup-v*`                  | Build & release setup binaries       |
+| `refresh-linkedin-token.yml` | Weekly (Mon 00:00 UTC) / Manual | Auto-refresh LinkedIn Access Token   |
+| `sns-auto-post.yml`          | Hourly (every hour) / Manual    | Fetch Ready posts, transform for SNS |
 
 ### LinkedIn Token Refresh Workflow
 

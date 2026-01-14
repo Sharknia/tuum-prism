@@ -20,11 +20,14 @@
 - 에러 핸들링 (Result 패턴, 404/500 페이지)
 - 성능 최적화 (캐싱, 서버 사이드 필터링)
 - 키보드 네비게이션 및 접근성
+- LinkedIn OAuth 연동 및 토큰 자동 갱신
+- SNS 자동 포스팅 핵심 로직 (Ready → 콘텐츠 변환)
 
 ## 예정 기능
 
+- 플랫폼별 SNS 포스팅 (LinkedIn, X, Threads)
+- Notion Write-back (상태 변경 + 로그 기록)
 - 글 작성 시 GitHub 커밋 자동 생성
-- SNS 동시 배포 (LinkedIn, X, Threads)
 - Giscus/Utterances 댓글 시스템
 
 ## 문서
