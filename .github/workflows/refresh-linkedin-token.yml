@@ -1,0 +1,266 @@
+name: Refresh LinkedIn Token
+
+on:
+  schedule:
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+
+env:
+  ACCESS_TOKEN_LIFETIME_DAYS: 60
+  REFRESH_TOKEN_LIFETIME_DAYS: 365
+  ACCESS_TOKEN_REFRESH_THRESHOLD_DAYS: 7
+  REFRESH_TOKEN_ALERT_THRESHOLD_DAYS: 30
+
+jobs:
+  refresh-token:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Get tokens from Edge Config
+        id: get-tokens
+        run: |
+          echo "📥 Fetching tokens from Edge Config..."
+
+          RESPONSE=$(curl -s "https://edge-config.vercel.com/${{ secrets.EDGE_CONFIG_ID }}" \
+            -H "Authorization: Bearer ${{ secrets.EDGE_CONFIG_TOKEN }}")
+
+          REFRESH_TOKEN=$(echo "$RESPONSE" | jq -r '.LINKEDIN_REFRESH_TOKEN // empty')
+          ISSUED_AT=$(echo "$RESPONSE" | jq -r '.LINKEDIN_TOKEN_ISSUED_AT // empty')
+
+          if [ -z "$REFRESH_TOKEN" ] || [ -z "$ISSUED_AT" ]; then
+            echo "❌ Failed to retrieve tokens from Edge Config"
+            echo "Please ensure LinkedIn OAuth has been completed and tokens are stored."
+            echo "tokens_valid=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "::add-mask::$REFRESH_TOKEN"
+          echo "refresh_token=$REFRESH_TOKEN" >> $GITHUB_OUTPUT
+          echo "issued_at=$ISSUED_AT" >> $GITHUB_OUTPUT
+          echo "tokens_valid=true" >> $GITHUB_OUTPUT
+          echo "✅ Tokens retrieved successfully"
+
+      - name: Calculate expiry dates
+        id: check-expiry
+        if: steps.get-tokens.outputs.tokens_valid == 'true'
+        run: |
+          ISSUED_AT=${{ steps.get-tokens.outputs.issued_at }}
+          NOW=$(date +%s)
+
+          ISSUED_AT_SEC=$((ISSUED_AT / 1000))
+          DAYS_ELAPSED=$(( (NOW - ISSUED_AT_SEC) / 86400 ))
+
+          ACCESS_EXPIRES_IN=$(( ${{ env.ACCESS_TOKEN_LIFETIME_DAYS }} - DAYS_ELAPSED ))
+          REFRESH_EXPIRES_IN=$(( ${{ env.REFRESH_TOKEN_LIFETIME_DAYS }} - DAYS_ELAPSED ))
+
+          echo "📊 Token Status:"
+          echo "  - Days since issued: $DAYS_ELAPSED"
+          echo "  - Access Token expires in: $ACCESS_EXPIRES_IN days"
+          echo "  - Refresh Token expires in: $REFRESH_EXPIRES_IN days"
+
+          echo "access_expires_in=$ACCESS_EXPIRES_IN" >> $GITHUB_OUTPUT
+          echo "refresh_expires_in=$REFRESH_EXPIRES_IN" >> $GITHUB_OUTPUT
+          echo "days_elapsed=$DAYS_ELAPSED" >> $GITHUB_OUTPUT
+
+          if [ "$ACCESS_EXPIRES_IN" -le "${{ env.ACCESS_TOKEN_REFRESH_THRESHOLD_DAYS }}" ]; then
+            echo "needs_refresh=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Access Token needs refresh (expires in $ACCESS_EXPIRES_IN days)"
+          else
+            echo "needs_refresh=false" >> $GITHUB_OUTPUT
+            echo "✅ Access Token is valid (expires in $ACCESS_EXPIRES_IN days)"
+          fi
+
+          if [ "$REFRESH_EXPIRES_IN" -le "${{ env.REFRESH_TOKEN_ALERT_THRESHOLD_DAYS }}" ]; then
+            echo "needs_reauth_alert=true" >> $GITHUB_OUTPUT
+            echo "🚨 Refresh Token expiring soon! ($REFRESH_EXPIRES_IN days remaining)"
+          else
+            echo "needs_reauth_alert=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Refresh Access Token
+        id: refresh
+        if: steps.get-tokens.outputs.tokens_valid == 'true' && steps.check-expiry.outputs.needs_refresh == 'true'
+        run: |
+          echo "🔄 Refreshing Access Token..."
+
+          RESPONSE=$(curl -s -X POST "https://www.linkedin.com/oauth/v2/accessToken" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "grant_type=refresh_token" \
+            -d "refresh_token=${{ steps.get-tokens.outputs.refresh_token }}" \
+            -d "client_id=${{ secrets.LINKEDIN_CLIENT_ID }}" \
+            -d "client_secret=${{ secrets.LINKEDIN_CLIENT_SECRET }}")
+
+          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.access_token // empty')
+          ERROR=$(echo "$RESPONSE" | jq -r '.error // empty')
+          ERROR_DESC=$(echo "$RESPONSE" | jq -r '.error_description // empty')
+
+          if [ -z "$ACCESS_TOKEN" ] || [ "$ACCESS_TOKEN" = "null" ]; then
+            echo "❌ Token refresh failed"
+            echo "Error: $ERROR"
+            echo "Description: $ERROR_DESC"
+            echo "refresh_success=false" >> $GITHUB_OUTPUT
+            echo "error_message=$ERROR: $ERROR_DESC" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          echo "::add-mask::$ACCESS_TOKEN"
+          echo "access_token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
+          echo "refresh_success=true" >> $GITHUB_OUTPUT
+          echo "✅ Access Token refreshed successfully"
+
+      - name: Update Edge Config
+        if: steps.refresh.outputs.refresh_success == 'true'
+        run: |
+          echo "📤 Updating Edge Config with new Access Token..."
+
+          RESPONSE=$(curl -s -X PATCH "https://api.vercel.com/v1/edge-config/${{ secrets.EDGE_CONFIG_ID }}/items" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "items": [
+                {
+                  "operation": "upsert",
+                  "key": "LINKEDIN_ACCESS_TOKEN",
+                  "value": "${{ steps.refresh.outputs.access_token }}"
+                }
+              ]
+            }')
+
+          STATUS=$(echo "$RESPONSE" | jq -r '.status // empty')
+
+          if [ "$STATUS" = "ok" ] || [ -z "$(echo "$RESPONSE" | jq -r '.error // empty')" ]; then
+            echo "✅ Edge Config updated successfully"
+          else
+            echo "❌ Failed to update Edge Config"
+            echo "Response: $RESPONSE"
+            exit 1
+          fi
+
+      - name: Check for existing reauth issue
+        id: check-issue
+        if: steps.check-expiry.outputs.needs_reauth_alert == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'linkedin-reauth',
+              state: 'open'
+            });
+            console.log(`Found ${issues.data.length} open reauth issues`);
+            return issues.data.length > 0;
+          result-encoding: string
+
+      - name: Create reauth alert issue
+        if: steps.check-expiry.outputs.needs_reauth_alert == 'true' && steps.check-issue.outputs.result != 'true'
+        uses: actions/github-script@v7
+        env:
+          DAYS_REMAINING: ${{ steps.check-expiry.outputs.refresh_expires_in }}
+          REAUTH_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}/api/auth/linkedin
+        with:
+          script: |
+            const daysRemaining = process.env.DAYS_REMAINING;
+            const reauthUrl = process.env.REAUTH_URL || 'https://your-blog.vercel.app/api/auth/linkedin';
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🔔 LinkedIn 재인증 필요 (${daysRemaining}일 후 만료)`,
+              body: `## LinkedIn Refresh Token 만료 예정
+
+            **남은 일수**: ${daysRemaining}일
+
+            Refresh Token이 곧 만료됩니다. 아래 링크에서 재인증해주세요:
+
+            👉 [LinkedIn 재인증하기](${reauthUrl})
+
+            > ⏱️ 1분 내 완료됩니다.
+            >
+            > 재인증 후 이 이슈를 닫아주세요.
+
+            ---
+            *이 이슈는 GitHub Actions에 의해 자동 생성되었습니다.*`,
+              labels: ['linkedin-reauth', 'urgent', 'auth']
+            });
+
+            console.log('📢 Reauth alert issue created');
+
+      - name: Alert on refresh failure
+        if: failure() && steps.refresh.outputs.refresh_success == 'false'
+        uses: actions/github-script@v7
+        env:
+          ERROR_MESSAGE: ${{ steps.refresh.outputs.error_message }}
+          REAUTH_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}/api/auth/linkedin
+          RUN_ID: ${{ github.run_id }}
+          REPO: ${{ github.repository }}
+        with:
+          script: |
+            const errorMessage = process.env.ERROR_MESSAGE || 'Unknown error';
+            const reauthUrl = process.env.REAUTH_URL || 'https://your-blog.vercel.app/api/auth/linkedin';
+            const runId = process.env.RUN_ID;
+            const repo = process.env.REPO;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '❌ LinkedIn Token 갱신 실패',
+              body: `## Token Refresh Failed
+
+            LinkedIn Access Token 갱신 중 오류가 발생했습니다.
+
+            **에러 메시지**: ${errorMessage}
+
+            **가능한 원인:**
+            - Refresh Token이 이미 만료됨 (365일 초과)
+            - LinkedIn OAuth 앱 권한 변경
+            - API 일시적 오류
+
+            **조치 방법:**
+            1. [LinkedIn 재인증하기](${reauthUrl})
+            2. 워크플로우 수동 재실행
+
+            **실행 로그:** [Actions Run](https://github.com/${repo}/actions/runs/${runId})
+
+            ---
+            *이 이슈는 GitHub Actions에 의해 자동 생성되었습니다.*`,
+              labels: ['bug', 'auth', 'urgent']
+            });
+
+      - name: Generate workflow summary
+        if: always()
+        run: |
+          echo "## 🔐 LinkedIn Token Refresh Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+
+          TOKENS_VALID="${{ steps.get-tokens.outputs.tokens_valid }}"
+          if [ "$TOKENS_VALID" = "true" ]; then
+            echo "| Tokens Retrieved | ✅ Yes |" >> $GITHUB_STEP_SUMMARY
+            echo "| Days Since Issued | ${{ steps.check-expiry.outputs.days_elapsed }} days |" >> $GITHUB_STEP_SUMMARY
+            echo "| Access Token Expires In | ${{ steps.check-expiry.outputs.access_expires_in }} days |" >> $GITHUB_STEP_SUMMARY
+            echo "| Refresh Token Expires In | ${{ steps.check-expiry.outputs.refresh_expires_in }} days |" >> $GITHUB_STEP_SUMMARY
+            echo "| Refresh Needed | ${{ steps.check-expiry.outputs.needs_refresh }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Reauth Alert Needed | ${{ steps.check-expiry.outputs.needs_reauth_alert }} |" >> $GITHUB_STEP_SUMMARY
+
+            if [ "${{ steps.check-expiry.outputs.needs_refresh }}" = "true" ]; then
+              if [ "${{ steps.refresh.outputs.refresh_success }}" = "true" ]; then
+                echo "| Refresh Result | ✅ Success |" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "| Refresh Result | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+              fi
+            else
+              echo "| Refresh Result | ⏭️ Skipped (not needed) |" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "| Tokens Retrieved | ❌ No |" >> $GITHUB_STEP_SUMMARY
+            echo "| Status | ⚠️ No LinkedIn tokens found in Edge Config |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*Workflow executed at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')*" >> $GITHUB_STEP_SUMMARY
