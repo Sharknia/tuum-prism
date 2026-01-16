@@ -990,3 +990,329 @@ jobs:
 
           echo ""
           echo "📊 Summary: $SUCCESS_COUNT platform(s) posted successfully"
+
+          # Output for notion-writeback job
+          echo "success_count=$SUCCESS_COUNT" >> $GITHUB_OUTPUT
+
+  # ============================================
+  # Phase 5: Notion Write-back
+  # ============================================
+  notion-writeback:
+    name: Update Notion Status
+    runs-on: ubuntu-latest
+    needs:
+      [
+        prepare-content,
+        post-to-x,
+        post-to-linkedin,
+        post-to-threads,
+        collect-results,
+      ]
+    if: always() && needs.prepare-content.outputs.has_posts == 'true'
+
+    steps:
+      # ============================================
+      # Step 1: 성공 판정 및 Dry Run 체크
+      # ============================================
+      - name: Check posting results
+        id: check
+        env:
+          X_STATUS: ${{ needs.post-to-x.outputs.status }}
+          LI_STATUS: ${{ needs.post-to-linkedin.outputs.status }}
+          TH_STATUS: ${{ needs.post-to-threads.outputs.status }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          echo "📝 Checking posting results for Notion write-back..."
+
+          # Dry Run 체크
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "🧪 DRY RUN: Skipping Notion write-back"
+            echo "should_update=false" >> $GITHUB_OUTPUT
+            echo "reason=dry_run" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # 성공 카운트 계산
+          SUCCESS_COUNT=0
+          SKIP_COUNT=0
+          ERROR_COUNT=0
+
+          # X 상태 확인
+          case "$X_STATUS" in
+            success) SUCCESS_COUNT=$((SUCCESS_COUNT + 1)) ;;
+            skipped) SKIP_COUNT=$((SKIP_COUNT + 1)) ;;
+            error)   ERROR_COUNT=$((ERROR_COUNT + 1)) ;;
+          esac
+
+          # LinkedIn 상태 확인
+          case "$LI_STATUS" in
+            success) SUCCESS_COUNT=$((SUCCESS_COUNT + 1)) ;;
+            skipped) SKIP_COUNT=$((SKIP_COUNT + 1)) ;;
+            error)   ERROR_COUNT=$((ERROR_COUNT + 1)) ;;
+          esac
+
+          # Threads 상태 확인
+          case "$TH_STATUS" in
+            success) SUCCESS_COUNT=$((SUCCESS_COUNT + 1)) ;;
+            skipped) SKIP_COUNT=$((SKIP_COUNT + 1)) ;;
+            error)   ERROR_COUNT=$((ERROR_COUNT + 1)) ;;
+          esac
+
+          echo "📊 Results: $SUCCESS_COUNT success, $SKIP_COUNT skipped, $ERROR_COUNT error"
+
+          echo "success_count=$SUCCESS_COUNT" >> $GITHUB_OUTPUT
+          echo "skip_count=$SKIP_COUNT" >> $GITHUB_OUTPUT
+          echo "error_count=$ERROR_COUNT" >> $GITHUB_OUTPUT
+
+          # 하나 이상 성공 시 상태 변경
+          if [ $SUCCESS_COUNT -gt 0 ]; then
+            echo "should_update=true" >> $GITHUB_OUTPUT
+            echo "reason=success" >> $GITHUB_OUTPUT
+            echo "✅ Will update Notion status to 'Updated'"
+          # 전체 스킵 시 Write-back 스킵
+          elif [ $SKIP_COUNT -eq 3 ]; then
+            echo "should_update=false" >> $GITHUB_OUTPUT
+            echo "reason=all_skipped" >> $GITHUB_OUTPUT
+            echo "⏭️ All platforms skipped, no write-back needed"
+          # 전체 실패 시 로그만 기록
+          else
+            echo "should_update=false" >> $GITHUB_OUTPUT
+            echo "should_log=true" >> $GITHUB_OUTPUT
+            echo "reason=all_failed" >> $GITHUB_OUTPUT
+            echo "❌ All platforms failed, will only log errors"
+          fi
+
+      # ============================================
+      # Step 2: 로그 메시지 생성
+      # ============================================
+      - name: Generate log message
+        id: log
+        if: steps.check.outputs.reason != 'dry_run' && steps.check.outputs.reason != 'all_skipped'
+        env:
+          X_STATUS: ${{ needs.post-to-x.outputs.status }}
+          X_URL: ${{ needs.post-to-x.outputs.url }}
+          X_ERROR: ${{ needs.post-to-x.outputs.error }}
+          LI_STATUS: ${{ needs.post-to-linkedin.outputs.status }}
+          LI_URL: ${{ needs.post-to-linkedin.outputs.url }}
+          LI_ERROR: ${{ needs.post-to-linkedin.outputs.error }}
+          TH_STATUS: ${{ needs.post-to-threads.outputs.status }}
+          TH_URL: ${{ needs.post-to-threads.outputs.url }}
+          TH_ERROR: ${{ needs.post-to-threads.outputs.error }}
+          TRANSFORM: ${{ needs.prepare-content.outputs.transform_method }}
+        run: |
+          echo "📝 Generating log message..."
+
+          # 타임스탬프 생성
+          TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M:%S')
+
+          # X 결과 라인
+          case "$X_STATUS" in
+            success) X_LINE="- X: ✅ $X_URL" ;;
+            error)   X_LINE="- X: ❌ $X_ERROR" ;;
+            skipped) X_LINE="- X: ⏭️ ${X_ERROR:-Not configured}" ;;
+            *)       X_LINE="- X: ⏭️ Unknown" ;;
+          esac
+
+          # LinkedIn 결과 라인
+          case "$LI_STATUS" in
+            success) LI_LINE="- LinkedIn: ✅ $LI_URL" ;;
+            error)   LI_LINE="- LinkedIn: ❌ $LI_ERROR" ;;
+            skipped) LI_LINE="- LinkedIn: ⏭️ ${LI_ERROR:-Not configured}" ;;
+            *)       LI_LINE="- LinkedIn: ⏭️ Unknown" ;;
+          esac
+
+          # Threads 결과 라인
+          case "$TH_STATUS" in
+            success) TH_LINE="- Threads: ✅ $TH_URL" ;;
+            error)   TH_LINE="- Threads: ❌ $TH_ERROR" ;;
+            skipped) TH_LINE="- Threads: ⏭️ ${TH_ERROR:-Not configured}" ;;
+            *)       TH_LINE="- Threads: ⏭️ Unknown" ;;
+          esac
+
+          # LLM 변환 방식
+          if [ "$TRANSFORM" = "ai" ]; then
+            LLM_LINE="- LLM: ✅ AI Gateway (gpt-4o)"
+          else
+            LLM_LINE="- LLM: ⏭️ Fallback"
+          fi
+
+          # 로그 메시지 조합
+          LOG_MESSAGE="[$TIMESTAMP] SNS Auto Post
+          $X_LINE
+          $LI_LINE
+          $TH_LINE
+          $LLM_LINE"
+
+          # 멀티라인 출력 (heredoc 방식)
+          echo "log_message<<EOFLOG" >> $GITHUB_OUTPUT
+          echo "$LOG_MESSAGE" >> $GITHUB_OUTPUT
+          echo "EOFLOG" >> $GITHUB_OUTPUT
+
+          echo "✅ Log message generated:"
+          echo "$LOG_MESSAGE"
+
+      # ============================================
+      # Step 3: 현재 systemLog 조회
+      # ============================================
+      - name: Get current systemLog
+        id: get-log
+        if: steps.check.outputs.reason != 'dry_run' && steps.check.outputs.reason != 'all_skipped'
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          PAGE_ID: ${{ needs.prepare-content.outputs.page_id }}
+        run: |
+          echo "📥 Fetching current systemLog from Notion..."
+
+          RESPONSE=$(curl -s "https://api.notion.com/v1/pages/${PAGE_ID}" \
+            -H "Authorization: Bearer ${NOTION_API_KEY}" \
+            -H "Notion-Version: 2022-06-28")
+
+          # systemLog 추출
+          CURRENT_LOG=$(echo "$RESPONSE" | jq -r '.properties.systemLog.rich_text[0].plain_text // ""')
+
+          if [ -n "$CURRENT_LOG" ]; then
+            echo "📄 Current log length: ${#CURRENT_LOG} chars"
+          else
+            echo "📄 No existing log"
+          fi
+
+          # 멀티라인 출력
+          echo "current_log<<EOFCURRENT" >> $GITHUB_OUTPUT
+          echo "$CURRENT_LOG" >> $GITHUB_OUTPUT
+          echo "EOFCURRENT" >> $GITHUB_OUTPUT
+
+      # ============================================
+      # Step 4: Notion 상태 변경 + 로그 업데이트
+      # ============================================
+      - name: Update Notion page
+        id: update
+        if: steps.check.outputs.reason != 'dry_run' && steps.check.outputs.reason != 'all_skipped'
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          PAGE_ID: ${{ needs.prepare-content.outputs.page_id }}
+          SHOULD_UPDATE: ${{ steps.check.outputs.should_update }}
+          CURRENT_LOG: ${{ steps.get-log.outputs.current_log }}
+          NEW_LOG: ${{ steps.log.outputs.log_message }}
+        run: |
+          echo "📝 Updating Notion page..."
+
+          # 새 로그 메시지 조합
+          if [ -n "$CURRENT_LOG" ]; then
+            FULL_LOG="${CURRENT_LOG}
+
+          ${NEW_LOG}"
+          else
+            FULL_LOG="$NEW_LOG"
+          fi
+
+          # 2000자 제한 체크 (Notion rich_text 제한)
+          LOG_LEN=${#FULL_LOG}
+          if [ $LOG_LEN -gt 1900 ]; then
+            echo "⚠️ Log too long ($LOG_LEN chars), trimming old entries..."
+            # 최신 1800자만 유지
+            FULL_LOG=$(echo "$FULL_LOG" | tail -c 1800)
+          fi
+
+          # JSON 이스케이프
+          ESCAPED_LOG=$(echo "$FULL_LOG" | jq -Rs .)
+
+          # 상태 변경 여부에 따른 properties 구성
+          if [ "$SHOULD_UPDATE" = "true" ]; then
+            echo "✅ Updating status to 'Updated' and appending log..."
+            PROPERTIES="{
+              \"상태\": {
+                \"select\": { \"name\": \"Updated\" }
+              },
+              \"systemLog\": {
+                \"rich_text\": [{ \"text\": { \"content\": ${ESCAPED_LOG} } }]
+              }
+            }"
+          else
+            echo "📝 Only appending error log (status remains 'Ready')..."
+            PROPERTIES="{
+              \"systemLog\": {
+                \"rich_text\": [{ \"text\": { \"content\": ${ESCAPED_LOG} } }]
+              }
+            }"
+          fi
+
+          # Notion API 호출
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X PATCH \
+            "https://api.notion.com/v1/pages/${PAGE_ID}" \
+            -H "Authorization: Bearer ${NOTION_API_KEY}" \
+            -H "Notion-Version: 2022-06-28" \
+            -H "Content-Type: application/json" \
+            -d "{\"properties\": $PROPERTIES}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Notion page updated successfully!"
+            echo "status=success" >> $GITHUB_OUTPUT
+            if [ "$SHOULD_UPDATE" = "true" ]; then
+              echo "status_changed=true" >> $GITHUB_OUTPUT
+            else
+              echo "status_changed=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "❌ Notion API error: HTTP $HTTP_CODE"
+            echo "$BODY" | jq '.' 2>/dev/null || echo "$BODY"
+            echo "status=error" >> $GITHUB_OUTPUT
+            echo "error=$(echo "$BODY" | jq -r '.message // "Unknown error"' 2>/dev/null)" >> $GITHUB_OUTPUT
+          fi
+
+      # ============================================
+      # Step 5: Write-back 결과 Summary 생성
+      # ============================================
+      - name: Generate Write-back Summary
+        if: always()
+        env:
+          REASON: ${{ steps.check.outputs.reason }}
+          UPDATE_STATUS: ${{ steps.update.outputs.status }}
+          STATUS_CHANGED: ${{ steps.update.outputs.status_changed }}
+          UPDATE_ERROR: ${{ steps.update.outputs.error }}
+          SUCCESS_COUNT: ${{ steps.check.outputs.success_count }}
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📝 Notion Write-back" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Action | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          case "$REASON" in
+            dry_run)
+              echo "| Status Change | 🧪 Skipped (Dry Run) |" >> $GITHUB_STEP_SUMMARY
+              echo "| System Log | 🧪 Skipped (Dry Run) |" >> $GITHUB_STEP_SUMMARY
+              ;;
+            all_skipped)
+              echo "| Status Change | ⏭️ Skipped (No platforms configured) |" >> $GITHUB_STEP_SUMMARY
+              echo "| System Log | ⏭️ Skipped |" >> $GITHUB_STEP_SUMMARY
+              ;;
+            all_failed)
+              if [ "$UPDATE_STATUS" = "success" ]; then
+                echo "| Status Change | ⏭️ Kept as Ready (All failed) |" >> $GITHUB_STEP_SUMMARY
+                echo "| System Log | ✅ Error log appended |" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "| Status Change | ❌ API Error |" >> $GITHUB_STEP_SUMMARY
+                echo "| System Log | ❌ $UPDATE_ERROR |" >> $GITHUB_STEP_SUMMARY
+              fi
+              ;;
+            success)
+              if [ "$UPDATE_STATUS" = "success" ]; then
+                echo "| Status Change | ✅ Ready → Updated |" >> $GITHUB_STEP_SUMMARY
+                echo "| System Log | ✅ Appended ($SUCCESS_COUNT platform(s)) |" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "| Status Change | ❌ API Error |" >> $GITHUB_STEP_SUMMARY
+                echo "| System Log | ❌ $UPDATE_ERROR |" >> $GITHUB_STEP_SUMMARY
+              fi
+              ;;
+            *)
+              echo "| Status Change | ❓ Unknown |" >> $GITHUB_STEP_SUMMARY
+              echo "| System Log | ❓ Unknown |" >> $GITHUB_STEP_SUMMARY
+              ;;
+          esac
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*Write-back completed at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')*" >> $GITHUB_STEP_SUMMARY
