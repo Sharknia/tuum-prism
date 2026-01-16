@@ -1,10 +1,24 @@
+import { cookies } from 'next/headers';
+
 import { EdgeConfigClient } from '@/infrastructure/edge-config';
 
 const LINKEDIN_TOKEN_URL = 'https://www.linkedin.com/oauth/v2/accessToken';
+const STATE_COOKIE_NAME = 'linkedin_oauth_state';
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get('code');
+  const state = url.searchParams.get('state');
+
+  const cookieStore = await cookies();
+  const savedState = cookieStore.get(STATE_COOKIE_NAME)?.value;
+
+  cookieStore.delete(STATE_COOKIE_NAME);
+
+  if (!state || !savedState || state !== savedState) {
+    console.error('OAuth state 불일치 - CSRF 공격 가능성');
+    return new Response('잘못된 요청입니다', { status: 400 });
+  }
 
   if (!code) {
     return new Response('Authorization code가 누락되었습니다', { status: 400 });

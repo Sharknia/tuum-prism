@@ -592,7 +592,7 @@ jobs:
             accessSecret: process.env.X_ACCESS_TOKEN_SECRET,
           });
 
-          async function postTweet() {
+          (async () => {
             try {
               const tweet = await client.v2.tweet(process.env.POST_TEXT);
               const tweetId = tweet.data.id;
@@ -608,10 +608,9 @@ jobs:
 
               fs.appendFileSync(process.env.GITHUB_OUTPUT, `status=error\n`);
               fs.appendFileSync(process.env.GITHUB_OUTPUT, `error=${error.message.substring(0, 200)}\n`);
+              process.exit(1);
             }
-          }
-
-          postTweet();
+          })();
           EOFNODE
 
       - name: Set result outputs

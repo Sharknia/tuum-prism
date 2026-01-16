@@ -1,14 +1,28 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockFetch = vi.fn();
+const mockCookiesGet = vi.fn();
+const mockCookiesDelete = vi.fn();
+const mockCookies = {
+  get: mockCookiesGet,
+  delete: mockCookiesDelete,
+  set: vi.fn(),
+};
+
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(() => Promise.resolve(mockCookies)),
+}));
 
 describe('GET /api/auth/linkedin/callback', () => {
   const originalEnv = process.env;
+  const validState = 'valid-state-uuid';
 
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
     global.fetch = mockFetch;
+
+    mockCookiesGet.mockReturnValue({ value: validState });
 
     process.env = {
       ...originalEnv,
@@ -42,7 +56,7 @@ describe('GET /api/auth/linkedin/callback', () => {
 
     const { GET } = await import('./route');
     const request = new Request(
-      'https://example.com/api/auth/linkedin/callback?code=auth-code'
+      `https://example.com/api/auth/linkedin/callback?code=auth-code&state=${validState}`
     );
     const response = await GET(request);
 
@@ -63,7 +77,7 @@ describe('GET /api/auth/linkedin/callback', () => {
   it('code가 없으면 400을 반환해야 한다', async () => {
     const { GET } = await import('./route');
     const request = new Request(
-      'https://example.com/api/auth/linkedin/callback'
+      `https://example.com/api/auth/linkedin/callback?state=${validState}`
     );
     const response = await GET(request);
 
@@ -79,7 +93,7 @@ describe('GET /api/auth/linkedin/callback', () => {
 
     const { GET } = await import('./route');
     const request = new Request(
-      'https://example.com/api/auth/linkedin/callback?code=invalid'
+      `https://example.com/api/auth/linkedin/callback?code=invalid&state=${validState}`
     );
     const response = await GET(request);
 
@@ -102,7 +116,9 @@ describe('GET /api/auth/linkedin/callback', () => {
       });
 
     const { GET } = await import('./route');
-    const request = new Request('https://example.com?code=valid');
+    const request = new Request(
+      `https://example.com?code=valid&state=${validState}`
+    );
     const response = await GET(request);
 
     expect(response.status).toBe(500);
@@ -112,9 +128,83 @@ describe('GET /api/auth/linkedin/callback', () => {
     delete process.env.LINKEDIN_CLIENT_ID;
 
     const { GET } = await import('./route');
-    const request = new Request('https://example.com?code=valid');
+    const request = new Request(
+      `https://example.com?code=valid&state=${validState}`
+    );
     const response = await GET(request);
 
     expect(response.status).toBe(500);
+  });
+
+  it('state 일치 시 정상적으로 진행해야 한다', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({ access_token: 'token', refresh_token: 'refresh' }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ status: 'success' }),
+      });
+
+    const { GET } = await import('./route');
+    const request = new Request(
+      `https://example.com/callback?code=auth-code&state=${validState}`
+    );
+    const response = await GET(request);
+
+    expect(response.status).toBe(200);
+  });
+
+  it('state 불일치 시 400을 반환해야 한다', async () => {
+    const { GET } = await import('./route');
+    const request = new Request(
+      'https://example.com/callback?code=auth-code&state=wrong-state'
+    );
+    const response = await GET(request);
+
+    expect(response.status).toBe(400);
+  });
+
+  it('URL에 state 파라미터가 없으면 400을 반환해야 한다', async () => {
+    const { GET } = await import('./route');
+    const request = new Request('https://example.com/callback?code=auth-code');
+    const response = await GET(request);
+
+    expect(response.status).toBe(400);
+  });
+
+  it('쿠키에 state가 없으면 400을 반환해야 한다', async () => {
+    mockCookiesGet.mockReturnValue(undefined);
+
+    const { GET } = await import('./route');
+    const request = new Request(
+      `https://example.com/callback?code=auth-code&state=${validState}`
+    );
+    const response = await GET(request);
+
+    expect(response.status).toBe(400);
+  });
+
+  it('state 검증 후 쿠키가 삭제되어야 한다', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({ access_token: 'token', refresh_token: 'refresh' }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ status: 'success' }),
+      });
+
+    const { GET } = await import('./route');
+    const request = new Request(
+      `https://example.com/callback?code=auth-code&state=${validState}`
+    );
+    await GET(request);
+
+    expect(mockCookiesDelete).toHaveBeenCalledWith('linkedin_oauth_state');
   });
 });

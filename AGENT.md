@@ -17,7 +17,7 @@ Skip for: bug fixes, styling, minor refactors.
 
 **Notion CMS → Blog multi-publishing monorepo.**
 
-Currently supports blog. SNS publishing infrastructure (LinkedIn OAuth + Token Auto-Refresh + Core Posting Logic) is implemented, with platform-specific posting (X/LinkedIn/Threads) planned.
+Currently supports blog. SNS publishing infrastructure (LinkedIn OAuth + Token Auto-Refresh + Core Posting + Platform Posting for X/LinkedIn/Threads + Notion Write-back) is fully implemented.
 
 ## Tech Stack
 
